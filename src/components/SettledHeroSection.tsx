@@ -30,7 +30,7 @@ const SettledHeroSection = ({ requestCount }: SettledHeroSectionProps) => {
           <div className="p-3 rounded-lg bg-muted/50 border border-border">
             <Settings2 className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-light text-foreground">
+          <h1 className="text-4xl font-light text-foreground">
             View {" "}
             <span className="text-primary font-semibold">{requestCount}</span>{" "}
             settled statements

@@ -68,10 +68,8 @@ const QueryTable = ({ queries }: QueryTableProps) => {
                       </h3>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>{query.subtitle}</span>
-                        <span>|</span>
-                        <Badge className={`text-xs ${getChainColor(query.chain)}`}>
-                          ◆ {query.chain}
-                        </Badge>
+                        
+                        
                       </div>
                     </div>
                   </div>
