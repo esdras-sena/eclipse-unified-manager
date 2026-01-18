@@ -69,10 +69,11 @@ const ProposeQueryTable = ({ queries }: ProposeQueryTableProps) => {
             </tr>
           </thead>
           <tbody>
-            {queries.map((query) => (
+            {queries.map((query, index) => (
               <tr
                 key={query.id}
-                className="border-b border-border/50 hover:bg-muted/30 transition-colors cursor-pointer group"
+                className="table-row-hover border-b border-border/50 cursor-pointer animate-slide-in"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 <td className="py-4 px-4">
                   <div className="flex items-start gap-3">
@@ -84,20 +85,13 @@ const ProposeQueryTable = ({ queries }: ProposeQueryTableProps) => {
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-primary hover:underline truncate max-w-[500px]">
+                      <p className="text-sm text-white font-medium text-primary hover:underline truncate max-w-[500px]">
                         {query.title}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-muted-foreground">
                           {query.timestamp}
                         </span>
-                        <span className="text-muted-foreground">|</span>
-                        <div className="flex items-center gap-1">
-                          <ChainIcon chain={query.chain} />
-                          <span className="text-xs text-muted-foreground">
-                            {query.chain}
-                          </span>
-                        </div>
                         <span className="text-muted-foreground">|</span>
                         <span className="text-xs text-muted-foreground">
                           {query.type}
@@ -127,8 +121,12 @@ const ProposeQueryTable = ({ queries }: ProposeQueryTableProps) => {
                     <span className="text-sm text-foreground">{query.reward}</span>
                   </div>
                 </td>
-                <td className="py-4 px-4">
-                  <ChevronRight className="h-5 w-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                 <td className="py-4 px-4">
+                  <div className="flex items-center justify-end">
+                    <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted">
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" style={{color: "white"}} />
+                    </div>
+                  </div>
                 </td>
               </tr>
             ))}

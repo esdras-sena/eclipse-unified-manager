@@ -21,9 +21,9 @@ const ProposeHeroSection = ({ requestCount }: ProposeHeroSectionProps) => {
   ];
 
   return (
-    <section className="relative py-16 px-4">
+    <section className="hero-gradient py-12 px-4">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-primary/5 to-transparent pointer-events-none" />
+      {/* <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-primary/5 to-transparent pointer-events-none" /> */}
       
       <div className="container mx-auto relative z-10">
         <div className="flex items-center gap-4 mb-8">
@@ -38,16 +38,16 @@ const ProposeHeroSection = ({ requestCount }: ProposeHeroSectionProps) => {
         </div>
 
         {/* Steps */}
-        <div className="bg-muted/30 border border-border rounded-xl p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-card/60 backdrop-blur border border-border rounded-xl p-6 card-shadow">
+          <div className="grid md:grid-cols-3 gap-6">
             {steps.map((step) => (
-              <div key={step.number} className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center">
-                  <span className="text-primary text-sm font-medium">
+              <div key={step.number} className="flex gap-4">
+                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-muted flex items-center justify-center">
+                  <span className="text-sm font-medium text-foreground">
                     {step.number}
                   </span>
                 </div>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed text-white">
                   {step.text}
                 </p>
               </div>

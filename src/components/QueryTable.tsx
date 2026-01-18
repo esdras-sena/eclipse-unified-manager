@@ -106,7 +106,7 @@ const QueryTable = ({ queries }: QueryTableProps) => {
                 <td className="py-4 px-4">
                   <div className="flex items-center justify-end">
                     <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" style={{color: "white"}}/>
                     </div>
                   </div>
                 </td>

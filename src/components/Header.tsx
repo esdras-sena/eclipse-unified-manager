@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Wallet } from "lucide-react";
+import { ConnectButton } from "./ConnectButton";
 
 interface HeaderProps {
   activeTab: string;
@@ -50,10 +51,7 @@ const Header = ({ activeTab, onTabChange }: HeaderProps) => {
           </nav>
 
           {/* Connect Wallet */}
-          <Button variant="wallet" size="default">
-            <Wallet className="h-4 w-4" />
-            Connect wallet
-          </Button>
+          <ConnectButton/>
         </div>
       </div>
     </header>

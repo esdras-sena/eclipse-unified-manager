@@ -41,7 +41,7 @@ const HeroSection = ({ statementCount }: HeroSectionProps) => {
                 <div className="flex-shrink-0 w-7 h-7 rounded-full bg-muted flex items-center justify-center">
                   <span className="text-sm font-medium text-foreground">{step.number}</span>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed text-white">
                   {step.text}
                 </p>
               </div>

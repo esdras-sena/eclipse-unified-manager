@@ -30,14 +30,14 @@ const FilterBar = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Projects</SelectItem>
-              <SelectItem value="polymarket">Polymarket</SelectItem>
+              {/* <SelectItem value="polymarket">Polymarket</SelectItem>
               <SelectItem value="across">Across</SelectItem>
-              <SelectItem value="rated">Rated</SelectItem>
+              <SelectItem value="rated">Rated</SelectItem> */}
             </SelectContent>
           </Select>
 
           {/* Chain Filter */}
-          <Select>
+          {/* <Select>
             <SelectTrigger className="w-[160px] bg-card border-border">
               <SelectValue placeholder="Chain" />
             </SelectTrigger>
@@ -48,17 +48,18 @@ const FilterBar = () => {
               <SelectItem value="optimism">Optimism</SelectItem>
               <SelectItem value="polygon">Polygon</SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
 
           {/* Oracle Filter */}
           <Select>
-            <SelectTrigger className="w-[160px] bg-card border-border">
-              <SelectValue placeholder="Oracle" />
+            <SelectTrigger className="w-[250px] bg-card border-border">
+              <SelectValue placeholder="All Oracles" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Oracles</SelectItem>
-              <SelectItem value="optimistic">Optimistic Oracle</SelectItem>
-              <SelectItem value="dvm">DVM</SelectItem>
+              <SelectItem value="optimistic oracle">Optimistic Oracle</SelectItem>
+              <SelectItem value="optimistic oracle managed">Optimistic Oracle Managed</SelectItem>
+              <SelectItem value="optimistic oracle asserter">Optimistic Oracle Asserter</SelectItem>
             </SelectContent>
           </Select>
         </div>
