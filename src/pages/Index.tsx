@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import VoteTimer from "@/components/VoteTimer";
@@ -104,13 +105,23 @@ const mockQueries: Query[] = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("verify");
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === "propose") {
+      navigate("/propose");
+    } else if (tab === "settled") {
+      navigate("/settled");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <AnnouncementBanner />
       <VoteTimer />
-      <Header activeTab={activeTab} onTabChange={setActiveTab} />
+      <Header activeTab={activeTab} onTabChange={handleTabChange} />
       <HeroSection statementCount={mockQueries.length} />
       <FilterBar />
       <QueryTable queries={mockQueries} />
