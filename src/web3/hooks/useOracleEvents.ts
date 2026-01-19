@@ -122,7 +122,13 @@ async function fetchAllRequestsFromContract(
   try {
     const provider = getProvider();
     const abi = await loadAbi(contractAddr);
-    const contract = new Contract({ abi, address: contractAddr, providerOrAccount: provider });
+    
+    // starknet.js v9 requires ContractOptions object
+    const contract = new Contract({
+      abi: abi as Abi,
+      address: contractAddr,
+      providerOrAccount: provider
+    });
     
     // Call get_all_requests
     const result = await contract.call('get_all_requests');
@@ -155,7 +161,13 @@ async function fetchAllAssertionsFromContract(): Promise<CombinedQuery[]> {
   try {
     const provider = getProvider();
     const abi = await loadAbi(OPTIMISTIC_ORACLE_ASSERTER_ADDRESS);
-    const contract = new Contract({ abi, address: OPTIMISTIC_ORACLE_ASSERTER_ADDRESS, providerOrAccount: provider });
+    
+    // starknet.js v9 requires ContractOptions object
+    const contract = new Contract({
+      abi: abi as Abi,
+      address: OPTIMISTIC_ORACLE_ASSERTER_ADDRESS,
+      providerOrAccount: provider
+    });
     
     // Call get_all_assertion
     const result = await contract.call('get_all_assertion');
