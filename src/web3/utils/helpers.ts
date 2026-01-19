@@ -140,11 +140,20 @@ export function generateQueryId(txHash: string, identifier: string, timestamp: n
   return `${txHash}-${identifier}-${timestamp}`;
 }
 
-// Parse i256 from Starknet (signed 256-bit integer)
+// Parse i256 from Starknet (custom struct with signal and value fields)
+// signal: 0 = positive, 1 = negative
+// value: the magnitude (u256 with low/high)
 export function parseI256(value: any): bigint {
   if (!value) return BigInt(0);
   
-  // Handle struct format with low/high
+  // Handle custom i256 struct format with signal and value
+  if (typeof value === 'object' && 'signal' in value && 'value' in value) {
+    const magnitude = parseU256(value.value);
+    const isNegative = Number(value.signal) === 1;
+    return isNegative ? -magnitude : magnitude;
+  }
+  
+  // Fallback: handle struct format with low/high directly
   if (typeof value === 'object' && 'low' in value && 'high' in value) {
     const low = BigInt(value.low || 0);
     const high = BigInt(value.high || 0);
