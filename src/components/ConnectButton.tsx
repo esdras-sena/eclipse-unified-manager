@@ -122,9 +122,8 @@ export function ConnectButton() {
 
   const connectWallet = async () => {
     const { starknetkitConnectModal } = useStarknetkitConnectModal({
-      connectors: connectors
+      connectors: connectors as any
     })
-
 
     const { connector: rawConnector } = await starknetkitConnectModal();
     const connector = rawConnector ?? undefined;
