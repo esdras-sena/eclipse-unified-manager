@@ -8,6 +8,7 @@ import FilterBar from "@/components/FilterBar";
 import QueryTable, { Query } from "@/components/QueryTable";
 
 const mockQueries: Query[] = [
+  // Optimistic Oracle Asserter items - use asserter-specific fields
   {
     id: "1",
     title: "Q: Bills vs. Broncos: Who Will Win On January 17th, 2026? | A: Broncos",
@@ -22,11 +23,10 @@ const mockQueries: Query[] = [
     oracleType: "optimistic-oracle-asserter",
     eventBased: true,
     reward: "5",
-    identifier: "ASSERT_TRUTH",
-    requester: "0x41779cf643f5302fe64c1eff4c128b9abca257d0",
-    requesterTxHash: "0xabc123...",
-    proposer: "0x52880cf754f5413fe75d2efb5c239c0bca368e1",
-    proposerTxHash: "0xdef456...",
+    asserter: "0x52880cf754f5413fe75d2efb5c239c0bca368e1",
+    asserterTxHash: "0xdef456...",
+    escalationManager: "0x0000000000000000000000000000000000000000",
+    callbackRecipient: "0x41779cf643f5302fe64c1eff4c128b9abca257d0",
   },
   {
     id: "2",
@@ -42,12 +42,12 @@ const mockQueries: Query[] = [
     oracleType: "optimistic-oracle-asserter",
     eventBased: false,
     reward: "10",
-    identifier: "ASSERT_TRUTH",
-    requester: "0x52880cf754f5413fe75d2efb5c239c0bca368e1",
-    requesterTxHash: "0xghi789...",
-    proposer: "0x63991dg865g6524gf86e3fgc6d340d1dcb479f2",
-    proposerTxHash: "0xjkl012...",
+    asserter: "0x63991dg865g6524gf86e3fgc6d340d1dcb479f2",
+    asserterTxHash: "0xjkl012...",
+    escalationManager: "0x0000000000000000000000000000000000000000",
+    callbackRecipient: "0x52880cf754f5413fe75d2efb5c239c0bca368e1",
   },
+  // Optimistic Oracle items - use request-specific fields
   {
     id: "3",
     title: "Across V2 Request",
@@ -88,6 +88,7 @@ const mockQueries: Query[] = [
     proposer: "0x07335hk209k0968kj20i7jkg0h784h5hgf813j6",
     proposerTxHash: "0xvwx234...",
   },
+  // Optimistic Oracle Managed items - use request-specific fields
   {
     id: "5",
     title: "Market resolved to YES",
@@ -98,15 +99,16 @@ const mockQueries: Query[] = [
     transactionHash: "0x111fe6d1g1df11g849h5g6637gfeh1111dh2577g9e51if8g95171093f3f0g63g",
     eventIndex: "5",
     description: "Prediction market resolution for a binary outcome event.",
-    oracleType: "optimistic-oracle-asserter",
+    oracleType: "optimistic-oracle-managed",
     eventBased: true,
     reward: "5",
-    identifier: "ASSERT_TRUTH",
+    identifier: "YES_OR_NO_QUERY",
     requester: "0x18446il310l1079lk31j8klh1i895i6ihg924k7",
     requesterTxHash: "0xyza567...",
     proposer: "0x29557jm421m2180ml42k9lmi2j906j7jih035l8",
     proposerTxHash: "0xbcd890...",
   },
+  // Optimistic Oracle Asserter items
   {
     id: "6",
     title: "Claim: As of the time this assertion is resolved, the Twitter/X account with the handle '@VitalikBut...",
@@ -120,11 +122,10 @@ const mockQueries: Query[] = [
     oracleType: "optimistic-oracle-asserter",
     eventBased: false,
     reward: "1",
-    identifier: "ASSERT_TRUTH",
-    requester: "0x30668kn532n3291nm53l0mnj3k017k8kji146m9",
-    requesterTxHash: "0xefg123...",
-    proposer: "0x41779lo643o4302on64m1nok4l128l9lkj257n0",
-    proposerTxHash: "0xhij456...",
+    asserter: "0x41779lo643o4302on64m1nok4l128l9lkj257n0",
+    asserterTxHash: "0xhij456...",
+    escalationManager: "0x0000000000000000000000000000000000000000",
+    callbackRecipient: "0x30668kn532n3291nm53l0mnj3k017k8kji146m9",
   },
   {
     id: "7",
@@ -139,11 +140,10 @@ const mockQueries: Query[] = [
     oracleType: "optimistic-oracle-asserter",
     eventBased: true,
     reward: "5",
-    identifier: "ASSERT_TRUTH",
-    requester: "0x52880mp754p5413pf75e2ofp5m239m0pml368o1",
-    requesterTxHash: "0xklm789...",
-    proposer: "0x63991nq865q6524qg86f3pgq6n340n1qnm479p2",
-    proposerTxHash: "0xnop012...",
+    asserter: "0x63991nq865q6524qg86f3pgq6n340n1qnm479p2",
+    asserterTxHash: "0xnop012...",
+    escalationManager: "0x0000000000000000000000000000000000000000",
+    callbackRecipient: "0x52880mp754p5413pf75e2ofp5m239m0pml368o1",
   },
   {
     id: "8",
@@ -158,12 +158,12 @@ const mockQueries: Query[] = [
     oracleType: "optimistic-oracle-asserter",
     eventBased: true,
     reward: "5",
-    identifier: "ASSERT_TRUTH",
-    requester: "0x74002or976r7635rh97g4qhr7o451o2orn580q3",
-    requesterTxHash: "0xqrs345...",
-    proposer: "0x85113ps087s8746si08h5ris8p562p3pso691r4",
-    proposerTxHash: "0xtuv678...",
+    asserter: "0x85113ps087s8746si08h5ris8p562p3pso691r4",
+    asserterTxHash: "0xtuv678...",
+    escalationManager: "0x0000000000000000000000000000000000000000",
+    callbackRecipient: "0x74002or976r7635rh97g4qhr7o451o2orn580q3",
   },
+  // Optimistic Oracle item
   {
     id: "9",
     title: "Test market B?",

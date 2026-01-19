@@ -67,9 +67,9 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
       case "optimistic-oracle-managed":
         return "Optimistic Oracle Managed";
       case "optimistic-oracle-asserter":
-        return "Optimistic Oracle V3";
+        return "Optimistic Oracle Asserter";
       default:
-        return "Optimistic Oracle V3";
+        return "Optimistic Oracle";
     }
   };
 
@@ -404,6 +404,22 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                     buttonText={query.asserter || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
                     className="text-sm text-primary hover:underline block truncate"
                   />
+                </div>
+              )}
+
+              {/* Asserter Transaction - for Asserter type */}
+              {isAsserterType && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">Asserter Transaction</span>
+                  <a
+                    href={`https://starkscan.co/tx/${query.asserterTxHash || "0x123..."}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
+                  >
+                    {query.asserterTxHash || "0x123..."}
+                    <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                  </a>
                 </div>
               )}
 

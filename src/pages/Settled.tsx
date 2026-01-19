@@ -7,7 +7,8 @@ import FilterBar from "@/components/FilterBar";
 import SettledQueryTable, { SettledQuery } from "@/components/SettledQueryTable";
 import { useNavigate } from "react-router-dom";
 
-const mockProposeQueries: SettledQuery[] = [
+const mockSettledQueries: SettledQuery[] = [
+  // Optimistic Oracle Asserter items - use asserter-specific fields
   {
     id: "1",
     title: "Q: Bills vs. Broncos: Who Will Win On January 17th, 2026? | A: Broncos",
@@ -25,11 +26,10 @@ const mockProposeQueries: SettledQuery[] = [
     proposedTimeUnix: "1768730200",
     settledTime: "Sun, 18 Jan 2026 01:08:00 GMT",
     settledTimeUnix: "1768732080",
-    identifier: "ASSERT_TRUTH",
-    requester: "0x41779cf643f5302fe64c1eff4c128b9abca257d0",
-    requesterTxHash: "0xabc123...",
-    proposer: "0x52880dg754g5413gf75d2efg5c239c0gcb368e1",
-    proposerTxHash: "0xdef456...",
+    asserter: "0x52880dg754g5413gf75d2efg5c239c0gcb368e1",
+    asserterTxHash: "0xdef456...",
+    escalationManager: "0x0000000000000000000000000000000000000000",
+    callbackRecipient: "0x41779cf643f5302fe64c1eff4c128b9abca257d0",
   },
   {
     id: "2",
@@ -48,18 +48,18 @@ const mockProposeQueries: SettledQuery[] = [
     proposedTimeUnix: "1768694400",
     settledTime: "Fri, 17 Jan 2026 17:37:00 GMT",
     settledTimeUnix: "1768707420",
-    identifier: "ASSERT_TRUTH",
-    requester: "0x63991eh865h6524hg86e3fgh6d340d1hdc479f2",
-    requesterTxHash: "0xghi789...",
-    proposer: "0x74002fi976i7635ih97f4ghi7e451e2ied580g3",
-    proposerTxHash: "0xjkl012...",
+    asserter: "0x74002fi976i7635ih97f4ghi7e451e2ied580g3",
+    asserterTxHash: "0xjkl012...",
+    escalationManager: "0x0000000000000000000000000000000000000000",
+    callbackRecipient: "0x63991eh865h6524hg86e3fgh6d340d1hdc479f2",
   },
+  // Optimistic Oracle items - use request-specific fields
   {
     id: "3",
     title: "Unable to decode hex string",
     timestamp: "01/17/2026, 1:40 AM",
     type: "Standard",
-    oracleType: "optimistic-oracle-asserter",
+    oracleType: "optimistic-oracle",
     bond: "100",
     reward: "2",
     result: "true",
@@ -71,18 +71,19 @@ const mockProposeQueries: SettledQuery[] = [
     proposedTimeUnix: "1768636800",
     settledTime: "Fri, 17 Jan 2026 01:40:00 GMT",
     settledTimeUnix: "1768650000",
-    identifier: "ASSERT_TRUTH",
+    identifier: "YES_OR_NO_QUERY",
     requester: "0x85113gj087j8746ji08g5hij8f562f3jfe691h4",
     requesterTxHash: "0xmno345...",
     proposer: "0x96224hk198k9857kj19h6ijk9g673g4kgf702i5",
     proposerTxHash: "0xpqr678...",
   },
+  // Optimistic Oracle Managed items - use request-specific fields
   {
     id: "4",
     title: "Verify MEV violations in ETHx staking pool",
     timestamp: "01/16/2026, 5:37 PM",
     type: "Standard",
-    oracleType: "optimistic-oracle-asserter",
+    oracleType: "optimistic-oracle-managed",
     bond: "600",
     reward: "10",
     result: "true",
@@ -94,7 +95,7 @@ const mockProposeQueries: SettledQuery[] = [
     proposedTimeUnix: "1768608000",
     settledTime: "Thu, 16 Jan 2026 17:37:00 GMT",
     settledTimeUnix: "1768621020",
-    identifier: "ASSERT_TRUTH",
+    identifier: "YES_OR_NO_QUERY",
     requester: "0x07335il209l0968lk20i7jkl0h784h5lhg813j6",
     requesterTxHash: "0xstu901...",
     proposer: "0x18446jm310m1079ml31j8klm1i895i6mih924k7",
@@ -120,9 +121,9 @@ const Settled = () => {
       <AnnouncementBanner />
       <VoteTimer />
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
-      <SettledHeroSection requestCount={mockProposeQueries.length} />
+      <SettledHeroSection requestCount={mockSettledQueries.length} />
       <FilterBar />
-      <SettledQueryTable queries={mockProposeQueries} />
+      <SettledQueryTable queries={mockSettledQueries} />
     </div>
   );
 };
