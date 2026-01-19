@@ -4,5 +4,7 @@ export const OPTIMISTIC_ORACLE_MANAGED_ADDRESS = import.meta.env.VITE_OPTIMISTIC
 export const OPTIMISTIC_ORACLE_ASSERTER_ADDRESS = import.meta.env.VITE_OPTIMISTIC_ORACLE_ASSERTER || "0x2374a5e0fc2d2def56a0cd45e34c186bf34976b414e698b5e7b21765dd8a6ab";
 export const VOTE_CONTRACT_ADDRESS = import.meta.env.VITE_VOTE_CONTRACT || "0x20498438f111d3e8d6a6666478321cc563a42602cd2e32ec763a0c45f889dad";
 
-// Block range for fetching events (last ~30 days on Starknet Sepolia)
-export const DEFAULT_FROM_BLOCK = 0;
+// Deployment blocks for each oracle contract (update these with actual deployment blocks)
+export const OPTIMISTIC_ORACLE_DEPLOY_BLOCK = Number(import.meta.env.VITE_OO_DEPLOY_BLOCK) || 0;
+export const OPTIMISTIC_ORACLE_MANAGED_DEPLOY_BLOCK = Number(import.meta.env.VITE_OO_MANAGED_DEPLOY_BLOCK) || 0;
+export const OPTIMISTIC_ORACLE_ASSERTER_DEPLOY_BLOCK = Number(import.meta.env.VITE_OO_ASSERTER_DEPLOY_BLOCK) || 0;
