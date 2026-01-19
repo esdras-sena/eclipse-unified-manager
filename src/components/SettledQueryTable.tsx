@@ -31,6 +31,7 @@ export interface SettledQuery {
   proposerTxHash?: string;
   // Asserter-type fields
   asserter?: string;
+  asserterTxHash?: string;
   escalationManager?: string;
   callbackRecipient?: string;
   oracleAddress?: string;
@@ -92,6 +93,7 @@ const SettledQueryTable = ({ queries }: SettledQueryTableProps) => {
       proposer: query.proposer,
       proposerTxHash: query.proposerTxHash,
       asserter: query.asserter,
+      asserterTxHash: query.asserterTxHash,
       escalationManager: query.escalationManager,
       callbackRecipient: query.callbackRecipient,
       oracleAddress: query.oracleAddress,

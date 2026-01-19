@@ -32,6 +32,7 @@ export interface Query {
   proposerTxHash?: string;
   // Asserter-type fields
   asserter?: string;
+  asserterTxHash?: string;
   escalationManager?: string;
   callbackRecipient?: string;
   oracleAddress?: string;

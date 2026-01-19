@@ -24,6 +24,7 @@ export interface ProposeQuery {
   requesterTxHash?: string;
   // Asserter-type fields
   asserter?: string;
+  asserterTxHash?: string;
   escalationManager?: string;
   callbackRecipient?: string;
   oracleAddress?: string;
@@ -79,6 +80,7 @@ const ProposeQueryTable = ({ queries }: ProposeQueryTableProps) => {
       requester: query.requester,
       requesterTxHash: query.requesterTxHash,
       asserter: query.asserter,
+      asserterTxHash: query.asserterTxHash,
       escalationManager: query.escalationManager,
       callbackRecipient: query.callbackRecipient,
       oracleAddress: query.oracleAddress,
