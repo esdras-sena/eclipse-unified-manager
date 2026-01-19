@@ -1,10 +1,14 @@
 import { RpcProvider, Contract, constants, hash, events, CallData, num, createAbiParser, Abi, EmittedEvent, ParsedStruct } from 'starknet';
 import { getNodeUrl } from "./network";
 
-const provider = new RpcProvider({ nodeUrl: getNodeUrl() });
+// Lazy provider getter to ensure correct RPC URL
+function getProvider() {
+  return new RpcProvider({ nodeUrl: getNodeUrl() });
+}
 
 
 export async function fetchEvents(fromBlock: number, toBlock: number, contractAddr: string, filter: string[][], eventName: string): Promise<[ParsedStruct[], string[]]>{
+    const provider = getProvider();
     const lastBlock = await provider.getBlockNumber()
     const keyFilter = [[num.toHex(hash.starknetKeccak('Add'))]];
     let allEvents: any[] = []
@@ -33,6 +37,7 @@ export async function fetchEvents(fromBlock: number, toBlock: number, contractAd
 }
 
 export async function loadAbi(contractAddr: string) {
+    const provider = getProvider();
     const klass = await provider.getClassAt(contractAddr);
     let abi = klass?.abi;
     if (typeof abi === 'string') {
@@ -47,6 +52,7 @@ export async function loadAbi(contractAddr: string) {
 export async function getBlockNumberByTimestamp(
   targetTimestamp: number
 ): Promise<number> {
+  const provider = getProvider();
   const latestBlock = await provider.getBlock("latest");
 
   let low = 0;
