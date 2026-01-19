@@ -20,7 +20,10 @@ import {
   felt252ToString
 } from '../utils/helpers';
 
-const provider = new RpcProvider({ nodeUrl: getNodeUrl() });
+// Create provider lazily to ensure correct RPC URL is used
+function getProvider() {
+  return new RpcProvider({ nodeUrl: getNodeUrl() });
+}
 
 interface EventData {
   requests: Map<string, any>;
@@ -43,7 +46,7 @@ async function loadAbi(contractAddr: string): Promise<Abi> {
     return abiCache.get(contractAddr)!;
   }
   
-  const klass = await provider.getClassAt(contractAddr);
+  const klass = await getProvider().getClassAt(contractAddr);
   let abi = klass?.abi;
   if (typeof abi === 'string') {
     abi = JSON.parse(abi) as Abi;
@@ -65,7 +68,7 @@ async function fetchAllEvents(
   let continuationToken: string | undefined = undefined;
   
   do {
-    const eventsList = await provider.getEvents({
+    const eventsList = await getProvider().getEvents({
       address: contractAddr,
       from_block: { block_number: fromBlock },
       to_block: { block_number: toBlock },
@@ -97,7 +100,7 @@ export async function fetchOptimisticOracleEvents(
   deployBlock: number
 ): Promise<CombinedQuery[]> {
   try {
-    const latestBlock = await provider.getBlockNumber();
+    const latestBlock = await getProvider().getBlockNumber();
     const fromBlock = deployBlock > 0 ? deployBlock : 0;
     
     const abi = await loadAbi(contractAddr);
@@ -291,7 +294,7 @@ export async function fetchOptimisticOracleEvents(
 // Fetch OO Asserter events
 export async function fetchOptimisticOracleAsserterEvents(): Promise<CombinedQuery[]> {
   try {
-    const latestBlock = await provider.getBlockNumber();
+    const latestBlock = await getProvider().getBlockNumber();
     const fromBlock = OPTIMISTIC_ORACLE_ASSERTER_DEPLOY_BLOCK > 0 ? OPTIMISTIC_ORACLE_ASSERTER_DEPLOY_BLOCK : 0;
     
     const abi = await loadAbi(OPTIMISTIC_ORACLE_ASSERTER_ADDRESS);

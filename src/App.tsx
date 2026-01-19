@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Propose from "./pages/Propose";
 import Settled from "./pages/Settled";
+import { AbiDebugPanel } from "./web3/debug/useContractAbis";
 
 const queryClient = new QueryClient();
 
@@ -14,6 +15,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <AbiDebugPanel />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
