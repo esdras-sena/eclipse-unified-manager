@@ -1,0 +1,1853 @@
+[
+  {
+    "type": "impl",
+    "name": "Upgradeable",
+    "interface_name": "openzeppelin_upgrades::interface::IUpgradeable"
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_upgrades::interface::IUpgradeable",
+    "items": [
+      {
+        "type": "function",
+        "name": "upgrade",
+        "inputs": [
+          {
+            "name": "new_class_hash",
+            "type": "core::starknet::class_hash::ClassHash"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "EclipseManagedOracleImpl",
+    "interface_name": "eclipse_oracle::interfaces::IManagedOptimisticOracle::IManagedOptimisticOracle"
+  },
+  {
+    "type": "struct",
+    "name": "eclipse_oracle::interfaces::IManagedOptimisticOracle::BondRange",
+    "members": [
+      {
+        "name": "minimumBond",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "maximumBond",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::integer::u256",
+    "members": [
+      {
+        "name": "low",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "high",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::byte_array::ByteArray",
+    "members": [
+      {
+        "name": "data",
+        "type": "core::array::Array::<core::bytes_31::bytes31>"
+      },
+      {
+        "name": "pending_word",
+        "type": "core::felt252"
+      },
+      {
+        "name": "pending_word_len",
+        "type": "core::internal::bounded_int::BoundedInt::<0, 30>"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "eclipse_oracle::interfaces::IAddressWhitelist::IAddressWhitelistDispatcher",
+    "members": [
+      {
+        "name": "contract_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::array::Span::<core::starknet::contract_address::ContractAddress>",
+    "members": [
+      {
+        "name": "snapshot",
+        "type": "@core::array::Array::<core::starknet::contract_address::ContractAddress>"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "eclipse_oracle::interfaces::IManagedOptimisticOracle::IManagedOptimisticOracle",
+    "items": [
+      {
+        "type": "function",
+        "name": "add_request_manager",
+        "inputs": [
+          {
+            "name": "requestManager",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "remove_request_manager",
+        "inputs": [
+          {
+            "name": "requestManager",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "setAllowedBondRange",
+        "inputs": [
+          {
+            "name": "currency",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "newRange",
+            "type": "eclipse_oracle::interfaces::IManagedOptimisticOracle::BondRange"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_minimum_liveness",
+        "inputs": [
+          {
+            "name": "_minimumLiveness",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_default_proposer_whitelist",
+        "inputs": [
+          {
+            "name": "whitelist",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_requester_whitelist",
+        "inputs": [
+          {
+            "name": "whitelist",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "request_manager_set_bond",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "currency",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "bond",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "request_manager_set_custom_liveness",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "customLiveness",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "request_manager_set_proposer_whitelist",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "whitelist",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "get_custom_proposer_whitelist",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "eclipse_oracle::interfaces::IAddressWhitelist::IAddressWhitelistDispatcher"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_proposer_whitelist_with_enabled_status",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "(core::array::Span::<core::starknet::contract_address::ContractAddress>, core::bool)"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_managed_request_id",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "EclipseOracleImpl",
+    "interface_name": "eclipse_oracle::interfaces::IOptimisticOracle::IOptimisticOracle"
+  },
+  {
+    "type": "struct",
+    "name": "eclipse_oracle::utils::signed256::Signed256::i256",
+    "members": [
+      {
+        "name": "signal",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "value",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "eclipse_oracle::interfaces::IOptimisticOracle::RequestSettings",
+    "members": [
+      {
+        "name": "eventBased",
+        "type": "core::bool"
+      },
+      {
+        "name": "refundOnDispute",
+        "type": "core::bool"
+      },
+      {
+        "name": "callbackOnPriceProposed",
+        "type": "core::bool"
+      },
+      {
+        "name": "callbackOnPriceDisputed",
+        "type": "core::bool"
+      },
+      {
+        "name": "callbackOnPriceSettled",
+        "type": "core::bool"
+      },
+      {
+        "name": "bond",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "customLiveness",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "eclipse_oracle::interfaces::IOptimisticOracle::Request",
+    "members": [
+      {
+        "name": "proposer",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "disputer",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "currency",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "settled",
+        "type": "core::bool"
+      },
+      {
+        "name": "requestSettings",
+        "type": "eclipse_oracle::interfaces::IOptimisticOracle::RequestSettings"
+      },
+      {
+        "name": "proposedPrice",
+        "type": "eclipse_oracle::utils::signed256::Signed256::i256"
+      },
+      {
+        "name": "resolvedPrice",
+        "type": "eclipse_oracle::utils::signed256::Signed256::i256"
+      },
+      {
+        "name": "expirationTime",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "reward",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "finalFee",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::array::Span::<eclipse_oracle::interfaces::IOptimisticOracle::Request>",
+    "members": [
+      {
+        "name": "snapshot",
+        "type": "@core::array::Array::<eclipse_oracle::interfaces::IOptimisticOracle::Request>"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "eclipse_oracle::interfaces::IOptimisticOracle::State",
+    "variants": [
+      {
+        "name": "Invalid",
+        "type": "()"
+      },
+      {
+        "name": "Requested",
+        "type": "()"
+      },
+      {
+        "name": "Proposed",
+        "type": "()"
+      },
+      {
+        "name": "Expired",
+        "type": "()"
+      },
+      {
+        "name": "Disputed",
+        "type": "()"
+      },
+      {
+        "name": "Resolved",
+        "type": "()"
+      },
+      {
+        "name": "Settled",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "eclipse_oracle::interfaces::IOptimisticOracle::IOptimisticOracle",
+    "items": [
+      {
+        "type": "function",
+        "name": "default_liveness",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "finder",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_current_time",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "request_price",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "currency",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "reward",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_bond",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "bond",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_refund_on_dispute",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_custom_liveness",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "customLiveness",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_event_based",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_callbacks",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "callbackOnPriceProposed",
+            "type": "core::bool"
+          },
+          {
+            "name": "callbackOnPriceDisputed",
+            "type": "core::bool"
+          },
+          {
+            "name": "callbackOnPriceSettled",
+            "type": "core::bool"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "propose_price_for",
+        "inputs": [
+          {
+            "name": "proposer",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "proposedPrice",
+            "type": "eclipse_oracle::utils::signed256::Signed256::i256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "propose_price",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "proposedPrice",
+            "type": "eclipse_oracle::utils::signed256::Signed256::i256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "dispute_price_for",
+        "inputs": [
+          {
+            "name": "disputer",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "dispute_price",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "settle_and_get_price",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "eclipse_oracle::utils::signed256::Signed256::i256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "settle",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "get_request",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "eclipse_oracle::interfaces::IOptimisticOracle::Request"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_all_requests",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::array::Span::<eclipse_oracle::interfaces::IOptimisticOracle::Request>"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_state",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "eclipse_oracle::interfaces::IOptimisticOracle::State"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "has_price",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "stamp_ancillary_data",
+        "inputs": [
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "AccessControlMixinImpl",
+    "interface_name": "openzeppelin_access::accesscontrol::interface::AccessControlABI"
+  },
+  {
+    "type": "enum",
+    "name": "openzeppelin_access::accesscontrol::interface::RoleStatus",
+    "variants": [
+      {
+        "name": "NotGranted",
+        "type": "()"
+      },
+      {
+        "name": "Delayed",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "Effective",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_access::accesscontrol::interface::AccessControlABI",
+    "items": [
+      {
+        "type": "function",
+        "name": "has_role",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_role_admin",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "grant_role",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "revoke_role",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "renounce_role",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "hasRole",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "getRoleAdmin",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "grantRole",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "revokeRole",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "renounceRole",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "get_role_status",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "openzeppelin_access::accesscontrol::interface::RoleStatus"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "grant_role_with_delay",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "delay",
+            "type": "core::integer::u64"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "supports_interface",
+        "inputs": [
+          {
+            "name": "interface_id",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::CurrencyBondRange",
+    "members": [
+      {
+        "name": "currency",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "range",
+        "type": "eclipse_oracle::interfaces::IManagedOptimisticOracle::BondRange"
+      }
+    ]
+  },
+  {
+    "type": "constructor",
+    "name": "constructor",
+    "inputs": [
+      {
+        "name": "_liveness",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "_finderAddress",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "_defaultProposerWhitelist",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "_requesterWhitelist",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "_allowedBondRanges",
+        "type": "core::array::Array::<eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::CurrencyBondRange>"
+      },
+      {
+        "name": "_minimumLiveness",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "configAdmin",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "upgradeAdmin",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::RequestPrice",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "timestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "currency",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "reward",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "finalFee",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::ProposePrice",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "proposer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "timestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "proposedPrice",
+        "type": "eclipse_oracle::utils::signed256::Signed256::i256",
+        "kind": "data"
+      },
+      {
+        "name": "expirationTimestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "currency",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::DisputePrice",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "proposer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "disputer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "timestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "proposedPrice",
+        "type": "eclipse_oracle::utils::signed256::Signed256::i256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::Settle",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "proposer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "disputer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "timestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "price",
+        "type": "eclipse_oracle::utils::signed256::Signed256::i256",
+        "kind": "data"
+      },
+      {
+        "name": "payout",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_security::reentrancyguard::ReentrancyGuardComponent::Event",
+    "kind": "enum",
+    "variants": []
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::AllowedBondRangeUpdated",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "currency",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "newMinimumBond",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "newMaximumBond",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::MinimumLivenessUpdated",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "newMinimumLiveness",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::DefaultProposerWhitelistUpdated",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "newWhitelist",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::RequesterWhitelistUpdated",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "newWhitelist",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::CustomBondSet",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "managedRequestId",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "currency",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "bond",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::CustomLivenessSet",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "managedRequestId",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "customLiveness",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::CustomProposerWhitelistSet",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "managedRequestId",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "newWhitelist",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Upgraded",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "class_hash",
+        "type": "core::starknet::class_hash::ClassHash",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "Upgraded",
+        "type": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Upgraded",
+        "kind": "nested"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGranted",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "role",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "account",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGrantedWithDelay",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "role",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "account",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "delay",
+        "type": "core::integer::u64",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleRevoked",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "role",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "account",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "role",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "previous_admin_role",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "new_admin_role",
+        "type": "core::felt252",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "RoleGranted",
+        "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGranted",
+        "kind": "nested"
+      },
+      {
+        "name": "RoleGrantedWithDelay",
+        "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGrantedWithDelay",
+        "kind": "nested"
+      },
+      {
+        "name": "RoleRevoked",
+        "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleRevoked",
+        "kind": "nested"
+      },
+      {
+        "name": "RoleAdminChanged",
+        "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
+        "kind": "nested"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_introspection::src5::SRC5Component::Event",
+    "kind": "enum",
+    "variants": []
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "RequestPrice",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::RequestPrice",
+        "kind": "nested"
+      },
+      {
+        "name": "ProposePrice",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::ProposePrice",
+        "kind": "nested"
+      },
+      {
+        "name": "DisputePrice",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::DisputePrice",
+        "kind": "nested"
+      },
+      {
+        "name": "Settle",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::Settle",
+        "kind": "nested"
+      },
+      {
+        "name": "ReentrancyGuardEvent",
+        "type": "openzeppelin_security::reentrancyguard::ReentrancyGuardComponent::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "AllowedBondRangeUpdated",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::AllowedBondRangeUpdated",
+        "kind": "nested"
+      },
+      {
+        "name": "MinimumLivenessUpdated",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::MinimumLivenessUpdated",
+        "kind": "nested"
+      },
+      {
+        "name": "DefaultProposerWhitelistUpdated",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::DefaultProposerWhitelistUpdated",
+        "kind": "nested"
+      },
+      {
+        "name": "RequesterWhitelistUpdated",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::RequesterWhitelistUpdated",
+        "kind": "nested"
+      },
+      {
+        "name": "CustomBondSet",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::CustomBondSet",
+        "kind": "nested"
+      },
+      {
+        "name": "CustomLivenessSet",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::CustomLivenessSet",
+        "kind": "nested"
+      },
+      {
+        "name": "CustomProposerWhitelistSet",
+        "type": "eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::CustomProposerWhitelistSet",
+        "kind": "nested"
+      },
+      {
+        "name": "UpgradeableEvent",
+        "type": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "AccessControlEvent",
+        "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "SRC5Event",
+        "type": "openzeppelin_introspection::src5::SRC5Component::Event",
+        "kind": "flat"
+      }
+    ]
+  }
+]

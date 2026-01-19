@@ -1,0 +1,911 @@
+[
+  {
+    "type": "impl",
+    "name": "EclipseOracleImpl",
+    "interface_name": "eclipse_oracle::interfaces::IOptimisticOracle::IOptimisticOracle"
+  },
+  {
+    "type": "struct",
+    "name": "core::integer::u256",
+    "members": [
+      {
+        "name": "low",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "high",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::byte_array::ByteArray",
+    "members": [
+      {
+        "name": "data",
+        "type": "core::array::Array::<core::bytes_31::bytes31>"
+      },
+      {
+        "name": "pending_word",
+        "type": "core::felt252"
+      },
+      {
+        "name": "pending_word_len",
+        "type": "core::internal::bounded_int::BoundedInt::<0, 30>"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "eclipse_oracle::utils::signed256::Signed256::i256",
+    "members": [
+      {
+        "name": "signal",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "value",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "eclipse_oracle::interfaces::IOptimisticOracle::RequestSettings",
+    "members": [
+      {
+        "name": "eventBased",
+        "type": "core::bool"
+      },
+      {
+        "name": "refundOnDispute",
+        "type": "core::bool"
+      },
+      {
+        "name": "callbackOnPriceProposed",
+        "type": "core::bool"
+      },
+      {
+        "name": "callbackOnPriceDisputed",
+        "type": "core::bool"
+      },
+      {
+        "name": "callbackOnPriceSettled",
+        "type": "core::bool"
+      },
+      {
+        "name": "bond",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "customLiveness",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "eclipse_oracle::interfaces::IOptimisticOracle::Request",
+    "members": [
+      {
+        "name": "proposer",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "disputer",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "currency",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "settled",
+        "type": "core::bool"
+      },
+      {
+        "name": "requestSettings",
+        "type": "eclipse_oracle::interfaces::IOptimisticOracle::RequestSettings"
+      },
+      {
+        "name": "proposedPrice",
+        "type": "eclipse_oracle::utils::signed256::Signed256::i256"
+      },
+      {
+        "name": "resolvedPrice",
+        "type": "eclipse_oracle::utils::signed256::Signed256::i256"
+      },
+      {
+        "name": "expirationTime",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "reward",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "finalFee",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::array::Span::<eclipse_oracle::interfaces::IOptimisticOracle::Request>",
+    "members": [
+      {
+        "name": "snapshot",
+        "type": "@core::array::Array::<eclipse_oracle::interfaces::IOptimisticOracle::Request>"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "eclipse_oracle::interfaces::IOptimisticOracle::State",
+    "variants": [
+      {
+        "name": "Invalid",
+        "type": "()"
+      },
+      {
+        "name": "Requested",
+        "type": "()"
+      },
+      {
+        "name": "Proposed",
+        "type": "()"
+      },
+      {
+        "name": "Expired",
+        "type": "()"
+      },
+      {
+        "name": "Disputed",
+        "type": "()"
+      },
+      {
+        "name": "Resolved",
+        "type": "()"
+      },
+      {
+        "name": "Settled",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "eclipse_oracle::interfaces::IOptimisticOracle::IOptimisticOracle",
+    "items": [
+      {
+        "type": "function",
+        "name": "default_liveness",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "finder",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_current_time",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "request_price",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "currency",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "reward",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_bond",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "bond",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_refund_on_dispute",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_custom_liveness",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "customLiveness",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_event_based",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_callbacks",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "callbackOnPriceProposed",
+            "type": "core::bool"
+          },
+          {
+            "name": "callbackOnPriceDisputed",
+            "type": "core::bool"
+          },
+          {
+            "name": "callbackOnPriceSettled",
+            "type": "core::bool"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "propose_price_for",
+        "inputs": [
+          {
+            "name": "proposer",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "proposedPrice",
+            "type": "eclipse_oracle::utils::signed256::Signed256::i256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "propose_price",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "proposedPrice",
+            "type": "eclipse_oracle::utils::signed256::Signed256::i256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "dispute_price_for",
+        "inputs": [
+          {
+            "name": "disputer",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "dispute_price",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "settle_and_get_price",
+        "inputs": [
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "eclipse_oracle::utils::signed256::Signed256::i256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "settle",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "get_request",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "eclipse_oracle::interfaces::IOptimisticOracle::Request"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_all_requests",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::array::Span::<eclipse_oracle::interfaces::IOptimisticOracle::Request>"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_state",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "eclipse_oracle::interfaces::IOptimisticOracle::State"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "has_price",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "stamp_ancillary_data",
+        "inputs": [
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "constructor",
+    "name": "constructor",
+    "inputs": [
+      {
+        "name": "_liveness",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "_finderAddress",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_oracle::EclipseOracle::RequestPrice",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "timestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "currency",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "reward",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "finalFee",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_oracle::EclipseOracle::ProposePrice",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "proposer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "timestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "proposedPrice",
+        "type": "eclipse_oracle::utils::signed256::Signed256::i256",
+        "kind": "data"
+      },
+      {
+        "name": "expirationTimestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "currency",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_oracle::EclipseOracle::DisputePrice",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "proposer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "disputer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "timestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "proposedPrice",
+        "type": "eclipse_oracle::utils::signed256::Signed256::i256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_oracle::EclipseOracle::Settle",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "proposer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "disputer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "identifier",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "timestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "ancillaryData",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "price",
+        "type": "eclipse_oracle::utils::signed256::Signed256::i256",
+        "kind": "data"
+      },
+      {
+        "name": "payout",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_security::reentrancyguard::ReentrancyGuardComponent::Event",
+    "kind": "enum",
+    "variants": []
+  },
+  {
+    "type": "event",
+    "name": "eclipse_oracle::eclipse_oracle::EclipseOracle::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "RequestPrice",
+        "type": "eclipse_oracle::eclipse_oracle::EclipseOracle::RequestPrice",
+        "kind": "nested"
+      },
+      {
+        "name": "ProposePrice",
+        "type": "eclipse_oracle::eclipse_oracle::EclipseOracle::ProposePrice",
+        "kind": "nested"
+      },
+      {
+        "name": "DisputePrice",
+        "type": "eclipse_oracle::eclipse_oracle::EclipseOracle::DisputePrice",
+        "kind": "nested"
+      },
+      {
+        "name": "Settle",
+        "type": "eclipse_oracle::eclipse_oracle::EclipseOracle::Settle",
+        "kind": "nested"
+      },
+      {
+        "name": "ReentrancyGuardEvent",
+        "type": "openzeppelin_security::reentrancyguard::ReentrancyGuardComponent::Event",
+        "kind": "flat"
+      }
+    ]
+  }
+]
