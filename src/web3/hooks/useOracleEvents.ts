@@ -4,7 +4,10 @@ import { getNodeUrl } from '../utils/network';
 import { 
   OPTIMISTIC_ORACLE_ADDRESS, 
   OPTIMISTIC_ORACLE_MANAGED_ADDRESS, 
-  OPTIMISTIC_ORACLE_ASSERTER_ADDRESS 
+  OPTIMISTIC_ORACLE_ASSERTER_ADDRESS,
+  OPTIMISTIC_ORACLE_DEPLOY_BLOCK,
+  OPTIMISTIC_ORACLE_MANAGED_DEPLOY_BLOCK,
+  OPTIMISTIC_ORACLE_ASSERTER_DEPLOY_BLOCK
 } from '../constants';
 import { CombinedQuery } from '../types';
 import { 
@@ -90,11 +93,12 @@ function generateAssertionKey(assertionId: string): string {
 // Fetch OO and OO Managed events
 export async function fetchOptimisticOracleEvents(
   contractAddr: string,
-  oracleType: 'optimistic-oracle' | 'optimistic-oracle-managed'
+  oracleType: 'optimistic-oracle' | 'optimistic-oracle-managed',
+  deployBlock: number
 ): Promise<CombinedQuery[]> {
   try {
     const latestBlock = await provider.getBlockNumber();
-    const fromBlock = Math.max(0, latestBlock - 100000); // Last ~100k blocks
+    const fromBlock = deployBlock > 0 ? deployBlock : 0;
     
     const abi = await loadAbi(contractAddr);
     const abiEvents = events.getAbiEvents(abi);
@@ -288,7 +292,7 @@ export async function fetchOptimisticOracleEvents(
 export async function fetchOptimisticOracleAsserterEvents(): Promise<CombinedQuery[]> {
   try {
     const latestBlock = await provider.getBlockNumber();
-    const fromBlock = Math.max(0, latestBlock - 100000);
+    const fromBlock = OPTIMISTIC_ORACLE_ASSERTER_DEPLOY_BLOCK > 0 ? OPTIMISTIC_ORACLE_ASSERTER_DEPLOY_BLOCK : 0;
     
     const abi = await loadAbi(OPTIMISTIC_ORACLE_ASSERTER_ADDRESS);
     const abiEvents = events.getAbiEvents(abi);
@@ -437,8 +441,8 @@ export function useOracleEvents() {
     
     try {
       const [ooQueries, ooManagedQueries, ooAsserterQueries] = await Promise.all([
-        fetchOptimisticOracleEvents(OPTIMISTIC_ORACLE_ADDRESS, 'optimistic-oracle'),
-        fetchOptimisticOracleEvents(OPTIMISTIC_ORACLE_MANAGED_ADDRESS, 'optimistic-oracle-managed'),
+        fetchOptimisticOracleEvents(OPTIMISTIC_ORACLE_ADDRESS, 'optimistic-oracle', OPTIMISTIC_ORACLE_DEPLOY_BLOCK),
+        fetchOptimisticOracleEvents(OPTIMISTIC_ORACLE_MANAGED_ADDRESS, 'optimistic-oracle-managed', OPTIMISTIC_ORACLE_MANAGED_DEPLOY_BLOCK),
         fetchOptimisticOracleAsserterEvents(),
       ]);
       
