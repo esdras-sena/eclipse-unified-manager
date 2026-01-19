@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronRight, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -56,14 +56,19 @@ const getChainColor = (chain: string) => {
 
 const QueryTable = ({ queries }: QueryTableProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedQuery, setSelectedQuery] = useState<Query | null>(() => {
+  const [selectedQuery, setSelectedQuery] = useState<Query | null>(null);
+
+  // Sync selected query with URL params when queries change
+  useEffect(() => {
     const txHash = searchParams.get("transactionHash");
     const eventIndex = searchParams.get("eventIndex");
     if (txHash && eventIndex) {
-      return queries.find(q => q.transactionHash === txHash && q.eventIndex === eventIndex) || null;
+      const found = queries.find(q => q.transactionHash === txHash && q.eventIndex === eventIndex);
+      if (found) {
+        setSelectedQuery(found);
+      }
     }
-    return null;
-  });
+  }, [queries, searchParams]);
 
   const handleRowClick = (query: Query) => {
     setSelectedQuery(query);
