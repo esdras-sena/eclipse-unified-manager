@@ -1,6 +1,14 @@
-import { X, Info, Clock, FileText, ExternalLink, CheckCircle, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { X, Info, Clock, FileText, ExternalLink, CheckCircle, AlertTriangle, ChevronDown, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import CopyButton from "./lib/CopyButton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type OracleType = "optimistic-oracle" | "optimistic-oracle-managed" | "optimistic-oracle-asserter";
 
@@ -47,6 +55,8 @@ interface QueryDetailPanelProps {
 }
 
 const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProps) => {
+  const [selectedAnswer, setSelectedAnswer] = useState<string>("");
+  
   if (!isOpen || !query) return null;
 
   const getStatusColor = () => {
@@ -120,11 +130,50 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
               <span className="text-sm font-medium">{getStatusLabel()}</span>
             </div>
 
-            <div className="bg-muted/50 rounded-lg p-3 border border-border">
-              <span className="text-sm text-foreground">
-                Proposal: {query.proposal}
-              </span>
-            </div>
+            {/* Proposal Display for verify/settled OR Answer Selection for propose */}
+            {type === "propose" ? (
+              <div className="space-y-3">
+                <Select value={selectedAnswer} onValueChange={setSelectedAnswer}>
+                  <SelectTrigger className="w-full bg-card border-border">
+                    <SelectValue placeholder="Select your answer" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50">
+                    <SelectItem value="true">True (Yes)</SelectItem>
+                    <SelectItem value="false">False (No)</SelectItem>
+                    <SelectItem value="0.5">Indeterminate (0.5)</SelectItem>
+                    <SelectItem value="custom">Custom Value...</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Propose Button */}
+                <button
+                  disabled={!selectedAnswer}
+                  className={`w-full py-3 px-4 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                    selectedAnswer
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                      : "bg-muted text-muted-foreground cursor-not-allowed"
+                  }`}
+                  onClick={() => {
+                    // TODO: Connect wallet and propose logic
+                    console.log("Propose answer:", selectedAnswer, "for query:", query.id);
+                  }}
+                >
+                  <Send className="h-4 w-4" />
+                  Propose Answer
+                </button>
+
+                {/* Bond Notice */}
+                <p className="text-xs text-muted-foreground text-center">
+                  You need to post a bond of {query.bond} {query.bondToken || "USDC"} to propose
+                </p>
+              </div>
+            ) : (
+              <div className="bg-muted/50 rounded-lg p-3 border border-border">
+                <span className="text-sm text-foreground">
+                  Proposal: {query.proposal}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Bond & Reward */}
