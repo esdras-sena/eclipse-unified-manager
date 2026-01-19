@@ -1,0 +1,8 @@
+// Contract addresses from environment variables
+export const OPTIMISTIC_ORACLE_ADDRESS = import.meta.env.VITE_OPTIMISTIC_ORACLE || "0x57fb2c837f018823d129c73838f5fa3f97123555141936aaabaed1e5428f0fb";
+export const OPTIMISTIC_ORACLE_MANAGED_ADDRESS = import.meta.env.VITE_OPTIMISTIC_ORACLE_MANAGED || "0x17624d2cbd3f90cab392eaa8735864ba2a8733c8aa95de405d24966799dff38";
+export const OPTIMISTIC_ORACLE_ASSERTER_ADDRESS = import.meta.env.VITE_OPTIMISTIC_ORACLE_ASSERTER || "0x2374a5e0fc2d2def56a0cd45e34c186bf34976b414e698b5e7b21765dd8a6ab";
+export const VOTE_CONTRACT_ADDRESS = import.meta.env.VITE_VOTE_CONTRACT || "0x20498438f111d3e8d6a6666478321cc563a42602cd2e32ec763a0c45f889dad";
+
+// Block range for fetching events (last ~30 days on Starknet Sepolia)
+export const DEFAULT_FROM_BLOCK = 0;
