@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import QueryDetailPanel, { OracleType } from "./QueryDetailPanel";
@@ -44,14 +44,19 @@ interface SettledQueryTableProps {
 
 const SettledQueryTable = ({ queries }: SettledQueryTableProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedQuery, setSelectedQuery] = useState<SettledQuery | null>(() => {
+  const [selectedQuery, setSelectedQuery] = useState<SettledQuery | null>(null);
+
+  // Sync selected query with URL params when queries change
+  useEffect(() => {
     const txHash = searchParams.get("transactionHash");
     const eventIndex = searchParams.get("eventIndex");
     if (txHash && eventIndex) {
-      return queries.find(q => q.transactionHash === txHash && q.eventIndex === eventIndex) || null;
+      const found = queries.find(q => q.transactionHash === txHash && q.eventIndex === eventIndex);
+      if (found) {
+        setSelectedQuery(found);
+      }
     }
-    return null;
-  });
+  }, [queries, searchParams]);
 
   const handleRowClick = (query: SettledQuery) => {
     setSelectedQuery(query);
