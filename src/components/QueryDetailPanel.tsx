@@ -1,4 +1,4 @@
-import { X, Info, Clock, FileText, ExternalLink, CheckCircle } from "lucide-react";
+import { X, Info, Clock, FileText, ExternalLink, CheckCircle, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import CopyButton from "./lib/CopyButton";
 
@@ -175,6 +175,38 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                   ? "Ended"
                   : "Disputed"}
               </span>
+            </div>
+          )}
+
+          {/* Dispute Action - Only show when challenge period is active */}
+          {type === "verify" && query.status === "active" && (
+            <div className="space-y-4 pt-2">
+              {/* Dispute Warning */}
+              <div className="flex items-start gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <AlertTriangle className="h-4 w-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-yellow-400">
+                  If this proposal is incorrect, you can dispute it by posting a bond of{" "}
+                  <span className="font-semibold">{query.bond} {query.bondToken || "USDC"}</span>.
+                  If your dispute is successful, you'll receive the proposer's bond as a reward.
+                </p>
+              </div>
+
+              {/* Dispute Button */}
+              <button
+                className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                onClick={() => {
+                  // TODO: Connect wallet and dispute logic
+                  console.log("Dispute proposal:", query.id);
+                }}
+              >
+                <AlertTriangle className="h-4 w-4" />
+                Dispute Proposal
+              </button>
+
+              {/* Balance Notice */}
+              <p className="text-xs text-muted-foreground text-center">
+                You need at least {query.bond} {query.bondToken || "USDC"} to dispute this proposal
+              </p>
             </div>
           )}
 
