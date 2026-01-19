@@ -146,11 +146,22 @@ const Propose = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("propose");
   const [selectedOracle, setSelectedOracle] = useState<OracleFilterValue>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredQueries = useMemo(() => {
-    if (selectedOracle === "all") return mockProposeQueries;
-    return mockProposeQueries.filter(q => q.oracleType === selectedOracle);
-  }, [selectedOracle]);
+    let filtered = mockProposeQueries;
+    
+    if (selectedOracle !== "all") {
+      filtered = filtered.filter(q => q.oracleType === selectedOracle);
+    }
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(q => q.title.toLowerCase().includes(query));
+    }
+    
+    return filtered;
+  }, [selectedOracle, searchQuery]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -167,7 +178,12 @@ const Propose = () => {
       <VoteTimer />
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
       <ProposeHeroSection requestCount={filteredQueries.length} />
-      <FilterBar selectedOracle={selectedOracle} onOracleChange={setSelectedOracle} />
+      <FilterBar 
+        selectedOracle={selectedOracle} 
+        onOracleChange={setSelectedOracle}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
       <ProposeQueryTable queries={filteredQueries} />
     </div>
   );

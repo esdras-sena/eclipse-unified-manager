@@ -194,11 +194,22 @@ const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("verify");
   const [selectedOracle, setSelectedOracle] = useState<OracleFilterValue>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredQueries = useMemo(() => {
-    if (selectedOracle === "all") return mockQueries;
-    return mockQueries.filter(q => q.oracleType === selectedOracle);
-  }, [selectedOracle]);
+    let filtered = mockQueries;
+    
+    if (selectedOracle !== "all") {
+      filtered = filtered.filter(q => q.oracleType === selectedOracle);
+    }
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(q => q.title.toLowerCase().includes(query));
+    }
+    
+    return filtered;
+  }, [selectedOracle, searchQuery]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -215,7 +226,12 @@ const Index = () => {
       <VoteTimer />
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
       <HeroSection statementCount={filteredQueries.length} />
-      <FilterBar selectedOracle={selectedOracle} onOracleChange={setSelectedOracle} />
+      <FilterBar 
+        selectedOracle={selectedOracle} 
+        onOracleChange={setSelectedOracle}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
       <QueryTable queries={filteredQueries} />
     </div>
   );
