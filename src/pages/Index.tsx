@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import VoteTimer from "@/components/VoteTimer";
 import HeroSection from "@/components/HeroSection";
-import FilterBar from "@/components/FilterBar";
+import FilterBar, { OracleFilterValue } from "@/components/FilterBar";
 import QueryTable, { Query } from "@/components/QueryTable";
 
 const mockQueries: Query[] = [
@@ -25,6 +25,7 @@ const mockQueries: Query[] = [
     reward: "5",
     asserter: "0x52880cf754f5413fe75d2efb5c239c0bca368e1",
     asserterTxHash: "0xdef456...",
+    caller: "0x31668af532a3291am53b0amj3a017a8aji146a9",
     escalationManager: "0x0000000000000000000000000000000000000000",
     callbackRecipient: "0x41779cf643f5302fe64c1eff4c128b9abca257d0",
   },
@@ -44,6 +45,7 @@ const mockQueries: Query[] = [
     reward: "10",
     asserter: "0x63991dg865g6524gf86e3fgc6d340d1dcb479f2",
     asserterTxHash: "0xjkl012...",
+    caller: "0x42779bg643b5302bf64b1bgb4b128b9bbb257b0",
     escalationManager: "0x0000000000000000000000000000000000000000",
     callbackRecipient: "0x52880cf754f5413fe75d2efb5c239c0bca368e1",
   },
@@ -124,6 +126,7 @@ const mockQueries: Query[] = [
     reward: "1",
     asserter: "0x41779lo643o4302on64m1nok4l128l9lkj257n0",
     asserterTxHash: "0xhij456...",
+    caller: "0x53880ch754c5413cf75c2chc5c239c0ccc368c1",
     escalationManager: "0x0000000000000000000000000000000000000000",
     callbackRecipient: "0x30668kn532n3291nm53l0mnj3k017k8kji146m9",
   },
@@ -142,6 +145,7 @@ const mockQueries: Query[] = [
     reward: "5",
     asserter: "0x63991nq865q6524qg86f3pgq6n340n1qnm479p2",
     asserterTxHash: "0xnop012...",
+    caller: "0x64991di865d6524df86d3dgd6d340d1ddb479d2",
     escalationManager: "0x0000000000000000000000000000000000000000",
     callbackRecipient: "0x52880mp754p5413pf75e2ofp5m239m0pml368o1",
   },
@@ -160,6 +164,7 @@ const mockQueries: Query[] = [
     reward: "5",
     asserter: "0x85113ps087s8746si08h5ris8p562p3pso691r4",
     asserterTxHash: "0xtuv678...",
+    caller: "0x75002ei976e7635eh97e4eie7e451e2eed580e3",
     escalationManager: "0x0000000000000000000000000000000000000000",
     callbackRecipient: "0x74002or976r7635rh97g4qhr7o451o2orn580q3",
   },
@@ -188,6 +193,12 @@ const mockQueries: Query[] = [
 const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("verify");
+  const [selectedOracle, setSelectedOracle] = useState<OracleFilterValue>("all");
+
+  const filteredQueries = useMemo(() => {
+    if (selectedOracle === "all") return mockQueries;
+    return mockQueries.filter(q => q.oracleType === selectedOracle);
+  }, [selectedOracle]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -203,9 +214,9 @@ const Index = () => {
       <AnnouncementBanner />
       <VoteTimer />
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
-      <HeroSection statementCount={mockQueries.length} />
-      <FilterBar />
-      <QueryTable queries={mockQueries} />
+      <HeroSection statementCount={filteredQueries.length} />
+      <FilterBar selectedOracle={selectedOracle} onOracleChange={setSelectedOracle} />
+      <QueryTable queries={filteredQueries} />
     </div>
   );
 };

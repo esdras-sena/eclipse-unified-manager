@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import VoteTimer from "@/components/VoteTimer";
 import SettledHeroSection from "@/components/SettledHeroSection";
-import FilterBar from "@/components/FilterBar";
+import FilterBar, { OracleFilterValue } from "@/components/FilterBar";
 import SettledQueryTable, { SettledQuery } from "@/components/SettledQueryTable";
 import { useNavigate } from "react-router-dom";
 
@@ -28,6 +28,7 @@ const mockSettledQueries: SettledQuery[] = [
     settledTimeUnix: "1768732080",
     asserter: "0x52880dg754g5413gf75d2efg5c239c0gcb368e1",
     asserterTxHash: "0xdef456...",
+    caller: "0x31668af532a3291am53b0amj3a017a8aji146a9",
     escalationManager: "0x0000000000000000000000000000000000000000",
     callbackRecipient: "0x41779cf643f5302fe64c1eff4c128b9abca257d0",
   },
@@ -50,6 +51,7 @@ const mockSettledQueries: SettledQuery[] = [
     settledTimeUnix: "1768707420",
     asserter: "0x74002fi976i7635ih97f4ghi7e451e2ied580g3",
     asserterTxHash: "0xjkl012...",
+    caller: "0x42779bg643b5302bf64b1bgb4b128b9bbb257b0",
     escalationManager: "0x0000000000000000000000000000000000000000",
     callbackRecipient: "0x63991eh865h6524hg86e3fgh6d340d1hdc479f2",
   },
@@ -106,6 +108,12 @@ const mockSettledQueries: SettledQuery[] = [
 const Settled = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("settled");
+  const [selectedOracle, setSelectedOracle] = useState<OracleFilterValue>("all");
+
+  const filteredQueries = useMemo(() => {
+    if (selectedOracle === "all") return mockSettledQueries;
+    return mockSettledQueries.filter(q => q.oracleType === selectedOracle);
+  }, [selectedOracle]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -121,9 +129,9 @@ const Settled = () => {
       <AnnouncementBanner />
       <VoteTimer />
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
-      <SettledHeroSection requestCount={mockSettledQueries.length} />
-      <FilterBar />
-      <SettledQueryTable queries={mockSettledQueries} />
+      <SettledHeroSection requestCount={filteredQueries.length} />
+      <FilterBar selectedOracle={selectedOracle} onOracleChange={setSelectedOracle} />
+      <SettledQueryTable queries={filteredQueries} />
     </div>
   );
 };

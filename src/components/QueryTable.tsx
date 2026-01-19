@@ -33,6 +33,7 @@ export interface Query {
   // Asserter-type fields
   asserter?: string;
   asserterTxHash?: string;
+  caller?: string;
   escalationManager?: string;
   callbackRecipient?: string;
   oracleAddress?: string;
