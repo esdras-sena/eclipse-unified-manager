@@ -109,11 +109,22 @@ const Settled = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("settled");
   const [selectedOracle, setSelectedOracle] = useState<OracleFilterValue>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredQueries = useMemo(() => {
-    if (selectedOracle === "all") return mockSettledQueries;
-    return mockSettledQueries.filter(q => q.oracleType === selectedOracle);
-  }, [selectedOracle]);
+    let filtered = mockSettledQueries;
+    
+    if (selectedOracle !== "all") {
+      filtered = filtered.filter(q => q.oracleType === selectedOracle);
+    }
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(q => q.title.toLowerCase().includes(query));
+    }
+    
+    return filtered;
+  }, [selectedOracle, searchQuery]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -130,7 +141,12 @@ const Settled = () => {
       <VoteTimer />
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
       <SettledHeroSection requestCount={filteredQueries.length} />
-      <FilterBar selectedOracle={selectedOracle} onOracleChange={setSelectedOracle} />
+      <FilterBar 
+        selectedOracle={selectedOracle} 
+        onOracleChange={setSelectedOracle}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
       <SettledQueryTable queries={filteredQueries} />
     </div>
   );

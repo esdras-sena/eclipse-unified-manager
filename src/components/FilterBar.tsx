@@ -14,9 +14,11 @@ export type OracleFilterValue = "all" | OracleType;
 interface FilterBarProps {
   selectedOracle: OracleFilterValue;
   onOracleChange: (value: OracleFilterValue) => void;
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
 }
 
-const FilterBar = ({ selectedOracle, onOracleChange }: FilterBarProps) => {
+const FilterBar = ({ selectedOracle, onOracleChange, searchQuery, onSearchChange }: FilterBarProps) => {
   return (
     <div className="bg-background py-6 px-4 border-b border-border">
       <div className="container mx-auto">
@@ -26,7 +28,9 @@ const FilterBar = ({ selectedOracle, onOracleChange }: FilterBarProps) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search"
+              placeholder="Search by name..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
               className="pl-10 bg-card border-border"
             />
           </div>
