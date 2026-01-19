@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { RpcProvider } from 'starknet';
+import { loadAbi } from '../utils/fetchEvents';
 import { 
   OPTIMISTIC_ORACLE_ADDRESS, 
   OPTIMISTIC_ORACLE_MANAGED_ADDRESS, 
   OPTIMISTIC_ORACLE_ASSERTER_ADDRESS 
 } from '../constants';
-import { getNodeUrl } from '../utils/network';
 
 interface FunctionInfo {
   name: string;
@@ -22,19 +21,11 @@ interface ContractAbiInfo {
   error: string | null;
 }
 
-const provider = new RpcProvider({ nodeUrl: getNodeUrl() });
-
-async function extractFunctions(address: string): Promise<FunctionInfo[]> {
-  const klass = await provider.getClassAt(address);
-  const abi = klass?.abi;
-  
-  if (!abi) return [];
-  
-  const abiArray = typeof abi === 'string' ? JSON.parse(abi) : abi;
+function extractFunctionsFromAbi(abi: any[]): FunctionInfo[] {
   const functions: FunctionInfo[] = [];
   
-  // Extract from interfaces
-  for (const item of abiArray) {
+  for (const item of abi) {
+    // Extract from interfaces
     if (item.type === 'interface' && item.items) {
       for (const fn of item.items) {
         if (fn.type === 'function') {
@@ -70,19 +61,24 @@ export function useContractAbis() {
 
   useEffect(() => {
     async function fetchAbis() {
-      const results = await Promise.all([
-        extractFunctions(OPTIMISTIC_ORACLE_ADDRESS).catch(e => ({ error: e.message })),
-        extractFunctions(OPTIMISTIC_ORACLE_MANAGED_ADDRESS).catch(e => ({ error: e.message })),
-        extractFunctions(OPTIMISTIC_ORACLE_ASSERTER_ADDRESS).catch(e => ({ error: e.message })),
-      ]);
+      const contractList = [
+        { name: 'Optimistic Oracle', address: OPTIMISTIC_ORACLE_ADDRESS },
+        { name: 'Optimistic Oracle Managed', address: OPTIMISTIC_ORACLE_MANAGED_ADDRESS },
+        { name: 'Optimistic Oracle Asserter', address: OPTIMISTIC_ORACLE_ASSERTER_ADDRESS },
+      ];
 
-      setContracts(prev => prev.map((contract, i) => {
-        const result = results[i];
-        if ('error' in result) {
-          return { ...contract, loading: false, error: result.error };
-        }
-        return { ...contract, loading: false, functions: result };
-      }));
+      const results = await Promise.all(
+        contractList.map(async (contract) => {
+          try {
+            const abi = await loadAbi(contract.address);
+            return { ...contract, functions: extractFunctionsFromAbi(abi), loading: false, error: null };
+          } catch (e: any) {
+            return { ...contract, functions: [], loading: false, error: e.message };
+          }
+        })
+      );
+
+      setContracts(results);
     }
 
     fetchAbis();
@@ -98,10 +94,9 @@ export function AbiDebugPanel() {
   useEffect(() => {
     // Log to console for easy viewing
     contracts.forEach(contract => {
-      if (!contract.loading && contract.functions.length > 0) {
+      if (!contract.loading && !contract.error && contract.functions.length > 0) {
         console.log(`\n=== ${contract.name} ===`);
         console.log(`Address: ${contract.address}`);
-        console.log('Functions:');
         
         // Group by view/external
         const viewFunctions = contract.functions.filter(f => f.stateMutability === 'view');
@@ -116,6 +111,8 @@ export function AbiDebugPanel() {
         externalFunctions.forEach(fn => {
           console.log(`  ${fn.name}(${fn.inputs}) -> ${fn.outputs}`);
         });
+      } else if (contract.error) {
+        console.error(`Error loading ABI for ${contract.name}:`, contract.error);
       }
     });
   }, [contracts]);
