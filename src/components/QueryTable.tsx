@@ -2,14 +2,12 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronRight, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import QueryDetailPanel from "./QueryDetailPanel";
+import QueryDetailPanel, { OracleType } from "./QueryDetailPanel";
 
 export interface Query {
   id: string;
   title: string;
   subtitle: string;
-  chain: string;
-  chainIcon: string;
   proposal: string;
   bond: string;
   bondToken?: string;
@@ -19,12 +17,24 @@ export interface Query {
   transactionHash?: string;
   eventIndex?: string;
   description?: string;
+  eventBased?: boolean;
+  oracleType?: OracleType;
+  // Timestamp data
   requestedTime?: string;
   requestedTimeUnix?: string;
-  oracleType?: string;
+  proposedTime?: string;
+  proposedTimeUnix?: string;
+  // Request-type fields
+  identifier?: string;
+  requester?: string;
+  requesterTxHash?: string;
+  proposer?: string;
+  proposerTxHash?: string;
+  // Asserter-type fields
   asserter?: string;
   escalationManager?: string;
   callbackRecipient?: string;
+  oracleAddress?: string;
   reward?: string;
 }
 
