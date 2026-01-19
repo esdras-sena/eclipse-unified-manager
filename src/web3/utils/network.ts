@@ -15,7 +15,8 @@ export function getNodeUrl() {
   }
 
   const isMain = hint.includes('main');
-  const fallbackMain = 'https://rpc.starknet.lava.build:443';
-  const fallbackSep = 'https://rpc.starknet-testnet.lava.build:443';
+  // Use public RPC endpoints with CORS support
+  const fallbackMain = 'https://starknet-mainnet.public.blastapi.io';
+  const fallbackSep = 'https://starknet-sepolia.public.blastapi.io';
   return isMain ? (envMainnet || fallbackMain) : (envSepolia || fallbackSep);
 }
