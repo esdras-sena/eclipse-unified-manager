@@ -2,6 +2,8 @@ import { X, Info, Clock, FileText, ExternalLink, CheckCircle } from "lucide-reac
 import { Badge } from "@/components/ui/badge";
 import CopyButton from "./lib/CopyButton";
 
+export type OracleType = "optimistic-oracle" | "optimistic-oracle-managed" | "optimistic-oracle-asserter";
+
 interface QueryDetailPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -9,7 +11,6 @@ interface QueryDetailPanelProps {
     id: string;
     title: string;
     subtitle: string;
-    chain: string;
     proposal: string;
     bond: string;
     bondToken?: string;
@@ -17,12 +18,28 @@ interface QueryDetailPanelProps {
     timeLeft?: string;
     // Extended data for detail view
     description?: string;
+    eventBased?: boolean;
+    oracleType?: OracleType;
+    // Timestamp data
     requestedTime?: string;
     requestedTimeUnix?: string;
-    oracleType?: string;
+    proposedTime?: string;
+    proposedTimeUnix?: string;
+    settledTime?: string;
+    settledTimeUnix?: string;
+    // Request-type specific fields (Optimistic Oracle, OO Managed)
+    identifier?: string;
+    requester?: string;
+    requesterTxHash?: string;
+    proposer?: string;
+    proposerTxHash?: string;
+    // Assertion-type specific fields (Optimistic Oracle Asserter)
     asserter?: string;
+    asserterTxHash?: string;
     escalationManager?: string;
     callbackRecipient?: string;
+    // Common fields
+    oracleAddress?: string;
     reward?: string;
   } | null;
   type: "verify" | "propose" | "settled";
@@ -42,6 +59,21 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
     if (type === "propose") return "Propose Answer";
     return "Dispute Proposal?";
   };
+
+  const getOracleTypeLabel = () => {
+    switch (query.oracleType) {
+      case "optimistic-oracle":
+        return "Optimistic Oracle";
+      case "optimistic-oracle-managed":
+        return "Optimistic Oracle Managed";
+      case "optimistic-oracle-asserter":
+        return "Optimistic Oracle V3";
+      default:
+        return "Optimistic Oracle V3";
+    }
+  };
+
+  const isAsserterType = query.oracleType === "optimistic-oracle-asserter";
 
   return (
     <>
@@ -159,24 +191,21 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
             </div>
           )}
 
-          {/* Chain & Oracle Type */}
-          <div className="flex items-center gap-2 py-3 border-t border-border">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-full border border-border">
-              <div className="w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center">
-                <span className="text-white text-[8px] font-bold">
-                  {query.chain.charAt(0)}
-                </span>
-              </div>
-              <span className="text-xs text-muted-foreground">{query.chain}</span>
-            </div>
+          {/* Oracle Type & Event Based */}
+          <div className="flex items-center gap-2 py-3 border-t border-border flex-wrap">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-full border border-border">
               <div className="w-4 h-4 rounded-full bg-muted flex items-center justify-center">
                 <span className="text-xs text-muted-foreground">○○</span>
               </div>
               <span className="text-xs text-muted-foreground">
-                {query.oracleType || "Optimistic Oracle V3"}
+                {getOracleTypeLabel()}
               </span>
             </div>
+            {query.eventBased && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/30">
+                <span className="text-xs text-primary font-medium">Event Based</span>
+              </div>
+            )}
           </div>
 
           {/* Timestamp Section */}
@@ -186,9 +215,10 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
               <span className="text-sm font-medium">Timestamp</span>
             </div>
 
+            {/* Requested Time */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-muted-foreground">Requested Time</span>
+                <span className="text-xs text-muted-foreground font-medium">Requested Time</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-xs text-muted-foreground">UTC</span>
@@ -204,20 +234,44 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
               </div>
             </div>
 
-            {type === "settled" && (
-              <div className="space-y-2 pt-2">
+            {/* Proposed Time */}
+            {(type === "verify" || type === "settled") && (
+              <div className="space-y-2 pt-2 border-t border-border/50">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Settled Time</span>
+                  <span className="text-xs text-muted-foreground font-medium">Proposed Time</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">UTC</span>
                   <span className="text-sm text-foreground">
-                    Sun, 18 Jan 2026 12:15:21 GMT
+                    {query.proposedTime || "Sun, 18 Jan 2026 10:30:00 GMT"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">UNIX</span>
-                  <span className="text-sm text-foreground">1768738521</span>
+                  <span className="text-sm text-foreground">
+                    {query.proposedTimeUnix || "1768732200"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Settled Time */}
+            {type === "settled" && (
+              <div className="space-y-2 pt-2 border-t border-border/50">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground font-medium">Settled Time</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">UTC</span>
+                  <span className="text-sm text-foreground">
+                    {query.settledTime || "Sun, 18 Jan 2026 12:15:21 GMT"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">UNIX</span>
+                  <span className="text-sm text-foreground">
+                    {query.settledTimeUnix || "1768738521"}
+                  </span>
                 </div>
               </div>
             )}
@@ -261,59 +315,137 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
             </div>
 
             <div className="space-y-3">
+              {/* Identifier - for Request types */}
+              {!isAsserterType && query.identifier && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">Identifier</span>
+                  <CopyButton
+                    copyText={query.identifier}
+                    buttonText={query.identifier}
+                    className="text-sm text-primary hover:underline block truncate"
+                  />
+                </div>
+              )}
+
+              {/* Oracle Address */}
               <div className="space-y-1">
                 <span className="text-xs font-medium text-foreground">
-                  {query.oracleType || "Optimistic Oracle V3"}
+                  {getOracleTypeLabel()}
                 </span>
                 <CopyButton
-                  copyText="0x2aBf1Bd76655de80eDB3086114315Eec75AF500c"
-                  buttonText="0x2aBf1Bd76655de80eDB3086114315Eec75AF500c"
+                  copyText={query.oracleAddress || "0x2aBf1Bd76655de80eDB3086114315Eec75AF500c"}
+                  buttonText={query.oracleAddress || "0x2aBf1Bd76655de80eDB3086114315Eec75AF500c"}
                   className="text-sm text-primary hover:underline block truncate"
                 />
               </div>
 
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-foreground">Asserter</span>
-                <CopyButton
-                  copyText={query.asserter || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
-                  buttonText={query.asserter || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
-                  className="text-sm text-primary hover:underline block truncate"
-                />
-              </div>
+              {/* Requester - for Request types */}
+              {!isAsserterType && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">Requester</span>
+                  <CopyButton
+                    copyText={query.requester || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
+                    buttonText={query.requester || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
+                    className="text-sm text-primary hover:underline block truncate"
+                  />
+                </div>
+              )}
 
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-foreground">
-                  Escalation Manager
-                </span>
-                <CopyButton
-                  copyText={
-                    query.escalationManager ||
-                    "0x0000000000000000000000000000000000000000"
-                  }
-                  buttonText={
-                    query.escalationManager ||
-                    "0x0000000000000000000000000000000000000000"
-                  }
-                  className="text-sm text-primary hover:underline block truncate"
-                />
-              </div>
+              {/* Requester Transaction - for Request types */}
+              {!isAsserterType && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">Requester Transaction</span>
+                  <a
+                    href={`https://starkscan.co/tx/${query.requesterTxHash || "0x123..."}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
+                  >
+                    {query.requesterTxHash || "0x123..."}
+                    <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                  </a>
+                </div>
+              )}
 
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-foreground">
-                  Callback Recipient
-                </span>
-                <CopyButton
-                  copyText={
-                    query.callbackRecipient ||
-                    "0x47ee4de132e2404ae166b644487a44189c04c26c"
-                  }
-                  buttonText={
-                    query.callbackRecipient ||
-                    "0x47ee4de132e2404ae166b644487a44189c04c26c"
-                  }
-                  className="text-sm text-primary hover:underline block truncate"
-                />
-              </div>
+              {/* Proposer - for Request types */}
+              {!isAsserterType && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">Proposer</span>
+                  <CopyButton
+                    copyText={query.proposer || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
+                    buttonText={query.proposer || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
+                    className="text-sm text-primary hover:underline block truncate"
+                  />
+                </div>
+              )}
+
+              {/* Proposal Transaction - for Request types */}
+              {!isAsserterType && (type === "verify" || type === "settled") && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">Proposal Transaction</span>
+                  <a
+                    href={`https://starkscan.co/tx/${query.proposerTxHash || "0x456..."}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
+                  >
+                    {query.proposerTxHash || "0x456..."}
+                    <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                  </a>
+                </div>
+              )}
+
+              {/* Asserter - for Asserter type */}
+              {isAsserterType && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">Asserter</span>
+                  <CopyButton
+                    copyText={query.asserter || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
+                    buttonText={query.asserter || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
+                    className="text-sm text-primary hover:underline block truncate"
+                  />
+                </div>
+              )}
+
+              {/* Escalation Manager - for Asserter type */}
+              {isAsserterType && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">
+                    Escalation Manager
+                  </span>
+                  <CopyButton
+                    copyText={
+                      query.escalationManager ||
+                      "0x0000000000000000000000000000000000000000"
+                    }
+                    buttonText={
+                      query.escalationManager ||
+                      "0x0000000000000000000000000000000000000000"
+                    }
+                    className="text-sm text-primary hover:underline block truncate"
+                  />
+                </div>
+              )}
+
+              {/* Callback Recipient - for Asserter type */}
+              {isAsserterType && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">
+                    Callback Recipient
+                  </span>
+                  <CopyButton
+                    copyText={
+                      query.callbackRecipient ||
+                      "0x47ee4de132e2404ae166b644487a44189c04c26c"
+                    }
+                    buttonText={
+                      query.callbackRecipient ||
+                      "0x47ee4de132e2404ae166b644487a44189c04c26c"
+                    }
+                    className="text-sm text-primary hover:underline block truncate"
+                  />
+                </div>
+              )}
             </div>
           </div>
 

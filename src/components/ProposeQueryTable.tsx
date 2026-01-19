@@ -1,27 +1,32 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import QueryDetailPanel from "./QueryDetailPanel";
+import QueryDetailPanel, { OracleType } from "./QueryDetailPanel";
 
 export interface ProposeQuery {
   id: string;
   title: string;
   timestamp: string;
-  chain: string;
-  chainIcon: string;
   type: string;
-  oracleType: string;
+  oracleType: OracleType;
   bond: string;
   reward: string;
   // Extended fields for detail panel
   transactionHash?: string;
   eventIndex?: string;
   description?: string;
+  eventBased?: boolean;
   requestedTime?: string;
   requestedTimeUnix?: string;
+  // Request-type fields
+  identifier?: string;
+  requester?: string;
+  requesterTxHash?: string;
+  // Asserter-type fields
   asserter?: string;
   escalationManager?: string;
   callbackRecipient?: string;
+  oracleAddress?: string;
 }
 
 interface ProposeQueryTableProps {
@@ -61,18 +66,22 @@ const ProposeQueryTable = ({ queries }: ProposeQueryTableProps) => {
       id: query.id,
       title: query.title,
       subtitle: query.timestamp,
-      chain: query.chain,
       proposal: "—",
       bond: query.bond,
       status: "active" as const,
       oracleType: query.oracleType,
+      eventBased: query.eventBased,
       reward: query.reward,
       description: query.description,
       requestedTime: query.requestedTime || query.timestamp,
       requestedTimeUnix: query.requestedTimeUnix,
+      identifier: query.identifier,
+      requester: query.requester,
+      requesterTxHash: query.requesterTxHash,
       asserter: query.asserter,
       escalationManager: query.escalationManager,
       callbackRecipient: query.callbackRecipient,
+      oracleAddress: query.oracleAddress,
     };
   };
 

@@ -1,16 +1,14 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import QueryDetailPanel from "./QueryDetailPanel";
+import QueryDetailPanel, { OracleType } from "./QueryDetailPanel";
 
 export interface SettledQuery {
   id: string;
   title: string;
   timestamp: string;
-  chain: string;
-  chainIcon: string;
   type: string;
-  oracleType: string;
+  oracleType: OracleType;
   bond: string;
   reward: string;
   result: string;
@@ -18,13 +16,24 @@ export interface SettledQuery {
   transactionHash?: string;
   eventIndex?: string;
   description?: string;
+  eventBased?: boolean;
   requestedTime?: string;
   requestedTimeUnix?: string;
+  proposedTime?: string;
+  proposedTimeUnix?: string;
   settledTime?: string;
   settledTimeUnix?: string;
+  // Request-type fields
+  identifier?: string;
+  requester?: string;
+  requesterTxHash?: string;
+  proposer?: string;
+  proposerTxHash?: string;
+  // Asserter-type fields
   asserter?: string;
   escalationManager?: string;
   callbackRecipient?: string;
+  oracleAddress?: string;
 }
 
 interface SettledQueryTableProps {
@@ -64,18 +73,28 @@ const SettledQueryTable = ({ queries }: SettledQueryTableProps) => {
       id: query.id,
       title: query.title,
       subtitle: query.timestamp,
-      chain: query.chain,
       proposal: query.result,
       bond: query.bond,
       status: "ended" as const,
       oracleType: query.oracleType,
+      eventBased: query.eventBased,
       reward: query.reward,
       description: query.description,
       requestedTime: query.requestedTime || query.timestamp,
       requestedTimeUnix: query.requestedTimeUnix,
+      proposedTime: query.proposedTime,
+      proposedTimeUnix: query.proposedTimeUnix,
+      settledTime: query.settledTime,
+      settledTimeUnix: query.settledTimeUnix,
+      identifier: query.identifier,
+      requester: query.requester,
+      requesterTxHash: query.requesterTxHash,
+      proposer: query.proposer,
+      proposerTxHash: query.proposerTxHash,
       asserter: query.asserter,
       escalationManager: query.escalationManager,
       callbackRecipient: query.callbackRecipient,
+      oracleAddress: query.oracleAddress,
     };
   };
 
