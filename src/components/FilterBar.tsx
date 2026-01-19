@@ -7,8 +7,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OracleType } from "./QueryDetailPanel";
 
-const FilterBar = () => {
+export type OracleFilterValue = "all" | OracleType;
+
+interface FilterBarProps {
+  selectedOracle: OracleFilterValue;
+  onOracleChange: (value: OracleFilterValue) => void;
+}
+
+const FilterBar = ({ selectedOracle, onOracleChange }: FilterBarProps) => {
   return (
     <div className="bg-background py-6 px-4 border-b border-border">
       <div className="container mx-auto">
@@ -30,36 +38,19 @@ const FilterBar = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Projects</SelectItem>
-              {/* <SelectItem value="polymarket">Polymarket</SelectItem>
-              <SelectItem value="across">Across</SelectItem>
-              <SelectItem value="rated">Rated</SelectItem> */}
             </SelectContent>
           </Select>
 
-          {/* Chain Filter */}
-          {/* <Select>
-            <SelectTrigger className="w-[160px] bg-card border-border">
-              <SelectValue placeholder="Chain" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Chains</SelectItem>
-              <SelectItem value="ethereum">Ethereum</SelectItem>
-              <SelectItem value="base">Base</SelectItem>
-              <SelectItem value="optimism">Optimism</SelectItem>
-              <SelectItem value="polygon">Polygon</SelectItem>
-            </SelectContent>
-          </Select> */}
-
           {/* Oracle Filter */}
-          <Select>
+          <Select value={selectedOracle} onValueChange={(value) => onOracleChange(value as OracleFilterValue)}>
             <SelectTrigger className="w-[250px] bg-card border-border">
               <SelectValue placeholder="All Oracles" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Oracles</SelectItem>
-              <SelectItem value="optimistic oracle">Optimistic Oracle</SelectItem>
-              <SelectItem value="optimistic oracle managed">Optimistic Oracle Managed</SelectItem>
-              <SelectItem value="optimistic oracle asserter">Optimistic Oracle Asserter</SelectItem>
+              <SelectItem value="optimistic-oracle">Optimistic Oracle</SelectItem>
+              <SelectItem value="optimistic-oracle-managed">Optimistic Oracle Managed</SelectItem>
+              <SelectItem value="optimistic-oracle-asserter">Optimistic Oracle Asserter</SelectItem>
             </SelectContent>
           </Select>
         </div>

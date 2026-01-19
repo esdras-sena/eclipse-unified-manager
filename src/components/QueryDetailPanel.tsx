@@ -36,6 +36,7 @@ interface QueryDetailPanelProps {
     // Assertion-type specific fields (Optimistic Oracle Asserter)
     asserter?: string;
     asserterTxHash?: string;
+    caller?: string;
     escalationManager?: string;
     callbackRecipient?: string;
     // Common fields
@@ -420,6 +421,18 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                     {query.asserterTxHash || "0x123..."}
                     <ExternalLink className="h-3 w-3 flex-shrink-0" />
                   </a>
+                </div>
+              )}
+
+              {/* Caller - for Asserter type */}
+              {isAsserterType && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">Caller</span>
+                  <CopyButton
+                    copyText={query.caller || "0x0000000000000000000000000000000000000000"}
+                    buttonText={query.caller || "0x0000000000000000000000000000000000000000"}
+                    className="text-sm text-primary hover:underline block truncate"
+                  />
                 </div>
               )}
 

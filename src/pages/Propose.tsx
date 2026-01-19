@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import VoteTimer from "@/components/VoteTimer";
 import ProposeHeroSection from "@/components/ProposeHeroSection";
-import FilterBar from "@/components/FilterBar";
+import FilterBar, { OracleFilterValue } from "@/components/FilterBar";
 import ProposeQueryTable, { ProposeQuery } from "@/components/ProposeQueryTable";
 import { useNavigate } from "react-router-dom";
 
@@ -45,7 +45,7 @@ const mockProposeQueries: ProposeQuery[] = [
     title: "Did the Chicago Bears record strictly more than 105 total team rushing yards in the official final b...",
     timestamp: "01/16/2026, 7:49 PM",
     type: "Event-based",
-    oracleType: "optimistic-oracle",
+    oracleType: "optimistic-oracle-managed",
     bond: "500",
     reward: "5",
     transactionHash: "0x30e96094481c49f8dd582e26228hef05hfhhgd67ffdC93hf6879c8f20gc466c4",
@@ -61,7 +61,7 @@ const mockProposeQueries: ProposeQuery[] = [
     title: "Did exactly 3 San Francisco 49ers players sustain an injury during the San Francisco 49ers' next off...",
     timestamp: "01/16/2026, 7:45 PM",
     type: "Event-based",
-    oracleType: "optimistic-oracle",
+    oracleType: "optimistic-oracle-managed",
     bond: "500",
     reward: "5",
     transactionHash: "0x41f07105592d50g9ee693f37339ifg16igiihE78ggEd04ig7980d9g31hd577d5",
@@ -77,32 +77,36 @@ const mockProposeQueries: ProposeQuery[] = [
     title: "Did exactly 1 San Francisco 49ers players sustain an injury during the San Francisco 49ers' next off...",
     timestamp: "01/16/2026, 7:45 PM",
     type: "Event-based",
-    oracleType: "optimistic-oracle",
+    oracleType: "optimistic-oracle-asserter",
     bond: "500",
     reward: "5",
     transactionHash: "0x52g18216603e61h0ff704g48440jgh27jhjjif89hhfe15jh8091e0h42ie688e6",
     eventIndex: "5",
     description: "Count of 49ers player injuries during specified game.",
     eventBased: true,
-    identifier: "YES_OR_NO_QUERY",
-    requester: "0x85113gj087j8746ji08g5hij8f562f3jfe691h4",
-    requesterTxHash: "0xmno345...",
+    asserter: "0x85113gj087j8746ji08g5hij8f562f3jfe691h4",
+    asserterTxHash: "0xmno345...",
+    caller: "0x86113aj087a8746ai08a5aia8a562a3afe691a4",
+    escalationManager: "0x0000000000000000000000000000000000000000",
+    callbackRecipient: "0x74002fi976i7635ih97f4ghi7e451e2ied580g3",
   },
   {
     id: "6",
     title: "Did exactly 0 San Francisco 49ers players sustain an injury during the San Francisco 49ers' next off...",
     timestamp: "01/16/2026, 7:45 PM",
     type: "Event-based",
-    oracleType: "optimistic-oracle",
+    oracleType: "optimistic-oracle-asserter",
     bond: "500",
     reward: "5",
     transactionHash: "0x63h29327714f72i1gg815h59551khh38kiKkjg90iigf26ki9102f1i53jf799f7",
     eventIndex: "6",
     description: "Count of 49ers player injuries during specified game.",
     eventBased: true,
-    identifier: "YES_OR_NO_QUERY",
-    requester: "0x96224hk198k9857kj19h6ijk9g673g4kgf702i5",
-    requesterTxHash: "0xpqr678...",
+    asserter: "0x96224hk198k9857kj19h6ijk9g673g4kgf702i5",
+    asserterTxHash: "0xpqr678...",
+    caller: "0x97224bk198b9857bj19b6bjb9b673b4bgf702b5",
+    escalationManager: "0x0000000000000000000000000000000000000000",
+    callbackRecipient: "0x85113gj087j8746ji08g5hij8f562f3jfe691h4",
   },
   {
     id: "7",
@@ -141,6 +145,12 @@ const mockProposeQueries: ProposeQuery[] = [
 const Propose = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("propose");
+  const [selectedOracle, setSelectedOracle] = useState<OracleFilterValue>("all");
+
+  const filteredQueries = useMemo(() => {
+    if (selectedOracle === "all") return mockProposeQueries;
+    return mockProposeQueries.filter(q => q.oracleType === selectedOracle);
+  }, [selectedOracle]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -156,9 +166,9 @@ const Propose = () => {
       <AnnouncementBanner />
       <VoteTimer />
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
-      <ProposeHeroSection requestCount={mockProposeQueries.length} />
-      <FilterBar />
-      <ProposeQueryTable queries={mockProposeQueries} />
+      <ProposeHeroSection requestCount={filteredQueries.length} />
+      <FilterBar selectedOracle={selectedOracle} onOracleChange={setSelectedOracle} />
+      <ProposeQueryTable queries={filteredQueries} />
     </div>
   );
 };
