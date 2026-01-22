@@ -1,7 +1,7 @@
 import Chevron from "../assets/icons/chevron.svg";
 import type { CSSProperties } from "react";
 import styled from "styled-components";
-import ReactDOM from "react-dom";
+import { createPortal } from "react-dom";
 import { useAccount, useConnect, useDisconnect, useStarkProfile, useNetwork } from "@starknet-react/core";
 import AddressBar from "./lib/AddressIcon";
 import GenericModal from "./lib/GenericModal";
@@ -9,7 +9,7 @@ import Close from "../svg/Close";
 import CopyButton from "./lib/CopyButton";
 import Blockies from "react-blockies";
 import AccountBalance from "./lib/AccountBalance";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 
 const UserModal = () => {
   const { address } = useAccount();
@@ -130,24 +130,47 @@ const WalletSelectModal = ({
 }) => {
   if (!isOpen) return null;
 
+  // Lock scroll while open (prevents weird stacking/scrolling glitches on /propose)
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  const sortedConnectors = useMemo(() => {
+    const list = Array.isArray(connectors) ? [...connectors] : [];
+    // Keep WebWallet (email) first, then the rest alphabetically.
+    return list.sort((a, b) => {
+      const aIsEmail = a?.id === "argentWebWallet";
+      const bIsEmail = b?.id === "argentWebWallet";
+      if (aIsEmail && !bIsEmail) return -1;
+      if (!aIsEmail && bIsEmail) return 1;
+      return String(a?.name || a?.id || "").localeCompare(String(b?.name || b?.id || ""));
+    });
+  }, [connectors]);
+
   // Use ReactDOM.createPortal to render modal at document.body level
-  return ReactDOM.createPortal(
-    <div 
+  return createPortal(
+    <div
       className="fixed inset-0 flex items-center justify-center"
-      style={{ zIndex: 99999 }}
+      style={{ zIndex: 2147483647 }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Connect Wallet"
     >
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/70" 
+        className="absolute inset-0 bg-popover/80 backdrop-blur-sm" 
         onClick={onClose}
       />
       {/* Modal */}
       <div 
-        className="relative w-[92vw] max-w-[24rem] rounded-[16px] border border-border bg-black p-5 text-card-foreground shadow-2xl"
-        style={{ zIndex: 100000 }}
+        className="relative w-[92vw] max-w-[24rem] rounded-[16px] border border-border bg-card p-5 text-card-foreground shadow-2xl"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Connect Wallet</h3>
+          <h3 className="text-lg font-semibold text-foreground">Connect Wallet</h3>
           <button
             className="grid h-8 w-8 place-content-center rounded-full hover:bg-muted"
             onClick={onClose}
@@ -156,7 +179,14 @@ const WalletSelectModal = ({
           </button>
         </div>
         <div className="flex flex-col gap-2">
-          {connectors.map((connector) => (
+          {sortedConnectors.map((connector) => {
+            const displayName =
+              connector?.id === "argentWebWallet" ? "Ready (Email)" : (connector?.name || connector?.id);
+            const iconSrc = connector?.icon
+              ? (typeof connector.icon === "string" ? connector.icon : (connector.icon?.dark || connector.icon?.light))
+              : null;
+
+            return (
             <button
               key={connector.id}
               onClick={() => {
@@ -165,19 +195,20 @@ const WalletSelectModal = ({
               disabled={isConnecting}
               className="flex items-center gap-3 w-full p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 transition-colors text-left disabled:opacity-50"
             >
-              {connector.icon && (
+              {iconSrc ? (
                 <img 
-                  src={typeof connector.icon === 'string' ? connector.icon : connector.icon?.dark || connector.icon?.light} 
-                  alt={connector.name} 
+                  src={iconSrc} 
+                  alt={displayName} 
                   className="w-8 h-8 rounded-lg"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
-              )}
-              <span className="font-medium text-white">{connector.name || connector.id}</span>
+              ) : null}
+              <span className="font-medium text-foreground">{displayName}</span>
             </button>
-          ))}
+            );
+          })}
         </div>
 
         {errorText ? (
