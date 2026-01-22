@@ -128,16 +128,17 @@ const WalletSelectModal = ({
   isConnecting: boolean;
   errorText?: string | null;
 }) => {
-  if (!isOpen) return null;
-
-  // Lock scroll while open (prevents weird stacking/scrolling glitches on /propose)
+  // Lock scroll while open (must be before any conditional returns to follow Rules of Hooks)
   useEffect(() => {
+    if (!isOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, []);
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const sortedConnectors = useMemo(() => {
     const list = Array.isArray(connectors) ? [...connectors] : [];
