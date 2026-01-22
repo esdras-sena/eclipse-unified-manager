@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { RpcProvider, Contract, Abi } from 'starknet';
+import { RpcProvider, events, CallData, createAbiParser, Abi } from 'starknet';
 import { getNodeUrl } from '../utils/network';
-import { loadAbi } from '../utils/fetchEvents';
 import { 
   OPTIMISTIC_ORACLE_ADDRESS, 
   OPTIMISTIC_ORACLE_MANAGED_ADDRESS, 
   OPTIMISTIC_ORACLE_ASSERTER_ADDRESS,
+  OPTIMISTIC_ORACLE_DEPLOY_BLOCK,
+  OPTIMISTIC_ORACLE_MANAGED_DEPLOY_BLOCK,
+  OPTIMISTIC_ORACLE_ASSERTER_DEPLOY_BLOCK,
 } from '../constants';
 import { CombinedQuery } from '../types';
 import { 
@@ -18,180 +20,326 @@ import {
   felt252ToString
 } from '../utils/helpers';
 
+// Import local ABIs
+import ooAbi from '../abis/ooAbi.json';
+import ooManagedAbi from '../abis/ooManagedAbi.json';
+import ooAsserterAbi from '../abis/ooAsserterAbi.json';
+
 function getProvider() {
   return new RpcProvider({ nodeUrl: getNodeUrl() });
 }
 
-// Parse Request struct from contract
-function parseRequestFromContract(request: any, index: number): CombinedQuery | null {
-  if (!request) return null;
-  
-  const proposer = request.proposer?.toString() || '0x0';
-  const isRequested = proposer === '0x0' || proposer === '0';
-  const isSettled = request.settled;
-  const disputer = request.disputer?.toString() || '0x0';
-  const isDisputed = disputer !== '0x0' && disputer !== '0' && !isSettled;
-  
-  const expirationTime = Number(request.expirationTime || 0);
-  const now = Math.floor(Date.now() / 1000);
-  const isExpired = expirationTime > 0 && expirationTime <= now;
-  
-  let status: "active" | "ended" | "disputed" = "active";
-  if (isSettled || isExpired) {
-    status = "ended";
-  } else if (isDisputed) {
-    status = "disputed";
-  }
-  
-  const proposedPrice = parseI256(request.proposedPrice);
-  const resolvedPrice = parseI256(request.resolvedPrice);
-  const reward = parseU256(request.reward);
-  const bond = parseU256(request.requestSettings?.bond || 0);
-  const finalFee = parseU256(request.finalFee);
-  
-  return {
-    id: String(index + 1),
-    title: `Request #${index + 1}`,
-    subtitle: expirationTime > 0 ? formatTimestamp(expirationTime - 7200) : 'Pending',
-    proposal: isRequested ? 'Pending' : formatBigInt(proposedPrice),
-    bond: formatBigInt(bond),
-    status,
-    timeLeft: expirationTime > 0 ? calculateTimeLeft(expirationTime) : undefined,
-    transactionHash: '0x0', // Will be populated from events if needed
-    eventIndex: String(index),
-    description: '',
-    oracleType: 'optimistic-oracle',
-    reward: formatBigInt(reward),
-    eventBased: request.requestSettings?.eventBased || false,
-    proposer: proposer !== '0x0' && proposer !== '0' ? proposer : undefined,
-    currency: request.currency?.toString(),
-    result: isSettled ? formatBigInt(resolvedPrice) : undefined,
-  };
-}
+// Event names from ABIs
+const OO_EVENTS = {
+  RequestPrice: 'eclipse_oracle::eclipse_oracle::EclipseOracle::RequestPrice',
+  ProposePrice: 'eclipse_oracle::eclipse_oracle::EclipseOracle::ProposePrice',
+  DisputePrice: 'eclipse_oracle::eclipse_oracle::EclipseOracle::DisputePrice',
+  Settle: 'eclipse_oracle::eclipse_oracle::EclipseOracle::Settle',
+};
 
-// Parse Assertion struct from contract
-function parseAssertionFromContract(assertion: any, index: number): CombinedQuery | null {
-  if (!assertion) return null;
-  
-  const isSettled = assertion.settled;
-  const disputer = assertion.disputer?.toString() || '0x0';
-  const isDisputed = disputer !== '0x0' && disputer !== '0' && !isSettled;
-  
-  const expirationTime = Number(assertion.expiration_time || 0);
-  const assertionTime = Number(assertion.assertion_time || 0);
-  const now = Math.floor(Date.now() / 1000);
-  const isExpired = expirationTime > 0 && expirationTime <= now;
-  
-  let status: "active" | "ended" | "disputed" = "active";
-  if (isSettled || isExpired) {
-    status = "ended";
-  } else if (isDisputed) {
-    status = "disputed";
-  }
-  
-  const bond = parseU256(assertion.bond);
-  const settlementResolution = assertion.settlement_resolution;
-  
-  return {
-    id: String(index + 1),
-    title: `Assertion #${index + 1}`,
-    subtitle: assertionTime > 0 ? formatTimestamp(assertionTime) : 'Unknown',
-    proposal: isSettled ? (settlementResolution ? 'true' : 'false') : 'Pending',
-    bond: formatBigInt(bond),
-    status,
-    timeLeft: expirationTime > 0 && !isSettled ? calculateTimeLeft(expirationTime) : undefined,
-    transactionHash: '0x0',
-    eventIndex: String(index),
-    description: '',
-    oracleType: 'optimistic-oracle-asserter',
-    asserter: assertion.asserter?.toString(),
-    caller: assertion.escalation_manager_settings?.asserting_caller?.toString(),
-    escalationManager: assertion.escalation_manager_settings?.escalation_manager?.toString(),
-    callbackRecipient: assertion.callback_recipient?.toString(),
-    currency: assertion.currency?.toString(),
-    identifier: felt252ToString(assertion.identifier),
-    result: isSettled ? (settlementResolution ? 'true' : 'false') : undefined,
-  };
-}
+const MANAGED_EVENTS = {
+  RequestPrice: 'eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::RequestPrice',
+  ProposePrice: 'eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::ProposePrice',
+  DisputePrice: 'eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::DisputePrice',
+  Settle: 'eclipse_oracle::eclipse_managed_oracle::EclipseManagedOracle::Settle',
+};
 
-// Fetch all requests using get_all_requests
-async function fetchAllRequestsFromContract(
+const ASSERTER_EVENTS = {
+  AssertionMade: 'eclipse_oracle::eclipse_oracle_asserter::EclipseOracleAsserter::AssertionMade',
+  AssertionDisputed: 'eclipse_oracle::eclipse_oracle_asserter::EclipseOracleAsserter::AssertionDisputed',
+  AssertionSettled: 'eclipse_oracle::eclipse_oracle_asserter::EclipseOracleAsserter::AssertionSettled',
+};
+
+// Fetch raw events from a contract
+async function fetchContractEvents(
   contractAddr: string,
+  fromBlock: number
+): Promise<{ events: any[]; txHashes: string[] }> {
+  const provider = getProvider();
+  const toBlock = await provider.getBlockNumber();
+  
+  let allEvents: any[] = [];
+  let continuationToken: string | undefined = undefined;
+  
+  while (true) {
+    const eventsList = await provider.getEvents({
+      address: contractAddr,
+      from_block: { block_number: fromBlock },
+      to_block: { block_number: toBlock },
+      chunk_size: 1000,
+      continuation_token: continuationToken,
+    });
+    
+    allEvents = allEvents.concat(eventsList.events);
+    continuationToken = eventsList.continuation_token;
+    
+    if (!continuationToken) break;
+  }
+  
+  const txHashes = allEvents.map(e => e.transaction_hash);
+  return { events: allEvents, txHashes };
+}
+
+// Parse events using local ABI
+function parseContractEvents(abi: Abi, rawEvents: any[]): any[] {
+  if (rawEvents.length === 0) return [];
+  
+  const abiEvents = events.getAbiEvents(abi);
+  const abiStructs = CallData.getAbiStruct(abi);
+  const abiEnums = CallData.getAbiEnum(abi);
+  const parser = createAbiParser(abi);
+  
+  return events.parseEvents(rawEvents, abiEvents, abiStructs, abiEnums, parser);
+}
+
+// Generate unique request key for matching events
+function getRequestKey(requester: string, identifier: string, timestamp: number | string, ancillaryData: string): string {
+  return `${requester}-${identifier}-${timestamp}-${ancillaryData}`;
+}
+
+// Fetch requests from OO or OO Managed using events
+async function fetchRequestsFromEvents(
+  contractAddr: string,
+  deployBlock: number,
+  abi: Abi,
+  eventConfig: typeof OO_EVENTS,
   oracleType: 'optimistic-oracle' | 'optimistic-oracle-managed'
 ): Promise<CombinedQuery[]> {
   try {
-    const provider = getProvider();
-    const abi = await loadAbi(contractAddr);
+    // Fetch all events
+    const { events: rawEvents, txHashes } = await fetchContractEvents(contractAddr, deployBlock);
+    console.log(`Fetched ${rawEvents.length} raw events for ${oracleType}`);
     
-    // starknet.js v9 requires ContractOptions object
-    const contract = new Contract({
-      abi: abi as Abi,
-      address: contractAddr,
-      providerOrAccount: provider
-    });
+    if (rawEvents.length === 0) return [];
     
-    // Call get_all_requests
-    const result = await contract.call('get_all_requests');
-    console.log("requests fetched ",result)
+    // Parse events using local ABI
+    const parsedEvents = parseContractEvents(abi, rawEvents);
+    console.log(`Parsed ${parsedEvents.length} events for ${oracleType}`, parsedEvents);
     
-    if (!result || !Array.isArray(result)) {
-      console.log(`No requests found for ${oracleType}`);
-      return [];
+    // Group events by request
+    const requestMap = new Map<string, {
+      request?: any;
+      propose?: any;
+      dispute?: any;
+      settle?: any;
+      txHash: string;
+      proposeTxHash?: string;
+    }>();
+    
+    for (let i = 0; i < parsedEvents.length; i++) {
+      const event = parsedEvents[i];
+      const txHash = txHashes[i];
+      
+      // Find which event type this is
+      for (const [eventType, eventName] of Object.entries(eventConfig)) {
+        if (event[eventName]) {
+          const data = event[eventName];
+          const key = getRequestKey(
+            data.requester?.toString() || '',
+            data.identifier?.toString() || '',
+            data.timestamp?.toString() || '',
+            parseByteArray(data.ancillaryData)
+          );
+          
+          const existing = requestMap.get(key) || { txHash };
+          
+          if (eventType === 'RequestPrice') {
+            existing.request = data;
+            existing.txHash = txHash;
+          } else if (eventType === 'ProposePrice') {
+            existing.propose = data;
+            existing.proposeTxHash = txHash;
+          } else if (eventType === 'DisputePrice') {
+            existing.dispute = data;
+          } else if (eventType === 'Settle') {
+            existing.settle = data;
+          }
+          
+          requestMap.set(key, existing);
+          break;
+        }
+      }
     }
     
-    const requests = result as any[];
-    const queries: CombinedQuery[] = [];
+    console.log(`Found ${requestMap.size} unique requests for ${oracleType}`);
     
-    for (let i = 0; i < requests.length; i++) {
-      const parsed = parseRequestFromContract(requests[i], i);
-      if (parsed) {
-        parsed.oracleType = oracleType;
-        queries.push(parsed);
+    // Convert to CombinedQuery
+    const queries: CombinedQuery[] = [];
+    let index = 0;
+    
+    for (const [, data] of requestMap.entries()) {
+      const req = data.request;
+      if (!req) continue;
+      
+      const isSettled = !!data.settle;
+      const isDisputed = !!data.dispute && !isSettled;
+      const isProposed = !!data.propose;
+      
+      const expirationTime = data.propose ? Number(data.propose.expirationTimestamp || 0) : 0;
+      const now = Math.floor(Date.now() / 1000);
+      const isExpired = expirationTime > 0 && expirationTime <= now;
+      
+      let status: "active" | "ended" | "disputed" = "active";
+      if (isSettled || isExpired) {
+        status = "ended";
+      } else if (isDisputed) {
+        status = "disputed";
       }
+      
+      const reward = parseU256(req.reward);
+      const finalFee = parseU256(req.finalFee);
+      const proposedPrice = data.propose ? parseI256(data.propose.proposedPrice) : BigInt(0);
+      const settledPrice = data.settle ? parseI256(data.settle.price) : BigInt(0);
+      
+      const identifier = felt252ToString(req.identifier);
+      const requestTimestamp = Number(req.timestamp || 0);
+      
+      queries.push({
+        id: String(index + 1),
+        title: `${identifier} @ ${requestTimestamp}`,
+        subtitle: formatTimestamp(requestTimestamp),
+        proposal: isProposed ? formatBigInt(proposedPrice) : 'Pending',
+        bond: formatBigInt(finalFee),
+        status,
+        timeLeft: expirationTime > 0 && !isSettled ? calculateTimeLeft(expirationTime) : undefined,
+        transactionHash: data.txHash,
+        eventIndex: String(index),
+        description: parseByteArray(req.ancillaryData),
+        oracleType,
+        reward: formatBigInt(reward),
+        eventBased: false,
+        identifier,
+        requester: req.requester?.toString(),
+        requesterTxHash: data.txHash,
+        proposer: data.propose?.proposer?.toString(),
+        proposerTxHash: data.proposeTxHash,
+        requestedTime: formatTimestamp(requestTimestamp),
+        requestedTimeUnix: String(requestTimestamp),
+        proposedTime: data.propose ? formatTimestamp(Number(data.propose.expirationTimestamp) - 7200) : undefined,
+        proposedTimeUnix: data.propose ? String(Number(data.propose.expirationTimestamp) - 7200) : undefined,
+        currency: req.currency?.toString(),
+        result: isSettled ? formatBigInt(settledPrice) : undefined,
+      });
+      
+      index++;
     }
     
     return queries;
   } catch (error) {
-    console.error(`Error fetching requests from ${oracleType}:`, error);
+    console.error(`Error fetching events from ${oracleType}:`, error);
     return [];
   }
 }
 
-// Fetch all assertions using get_all_assertion
-async function fetchAllAssertionsFromContract(): Promise<CombinedQuery[]> {
+// Fetch assertions from OO Asserter using events
+async function fetchAssertionsFromEvents(): Promise<CombinedQuery[]> {
   try {
-    const provider = getProvider();
-    const abi = await loadAbi(OPTIMISTIC_ORACLE_ASSERTER_ADDRESS);
+    const deployBlock = OPTIMISTIC_ORACLE_ASSERTER_DEPLOY_BLOCK || 0;
     
-    // starknet.js v9 requires ContractOptions object
-    const contract = new Contract({
-      abi: abi as Abi,
-      address: OPTIMISTIC_ORACLE_ASSERTER_ADDRESS,
-      providerOrAccount: provider
-    });
+    // Fetch all events
+    const { events: rawEvents, txHashes } = await fetchContractEvents(
+      OPTIMISTIC_ORACLE_ASSERTER_ADDRESS,
+      deployBlock
+    );
+    console.log(`Fetched ${rawEvents.length} raw events for asserter`);
     
-    // Call get_all_assertion
-    const result = await contract.call('get_all_assertion');
+    if (rawEvents.length === 0) return [];
     
-    if (!result || !Array.isArray(result)) {
-      console.log('No assertions found');
-      return [];
+    // Parse events using local ABI
+    const parsedEvents = parseContractEvents(ooAsserterAbi as Abi, rawEvents);
+    console.log(`Parsed ${parsedEvents.length} events for asserter`, parsedEvents);
+    
+    // Group events by assertion_id
+    const assertionMap = new Map<string, {
+      made?: any;
+      disputed?: any;
+      settled?: any;
+      txHash: string;
+    }>();
+    
+    for (let i = 0; i < parsedEvents.length; i++) {
+      const event = parsedEvents[i];
+      const txHash = txHashes[i];
+      
+      for (const [eventType, eventName] of Object.entries(ASSERTER_EVENTS)) {
+        if (event[eventName]) {
+          const data = event[eventName];
+          const assertionId = data.assertion_id?.toString() || '';
+          
+          const existing = assertionMap.get(assertionId) || { txHash };
+          
+          if (eventType === 'AssertionMade') {
+            existing.made = data;
+            existing.txHash = txHash;
+          } else if (eventType === 'AssertionDisputed') {
+            existing.disputed = data;
+          } else if (eventType === 'AssertionSettled') {
+            existing.settled = data;
+          }
+          
+          assertionMap.set(assertionId, existing);
+          break;
+        }
+      }
     }
     
-    console.log("assertions fetched ", result)
-    const assertions = result as any[];
-    const queries: CombinedQuery[] = [];
+    console.log(`Found ${assertionMap.size} unique assertions`);
     
-    for (let i = 0; i < assertions.length; i++) {
-      const parsed = parseAssertionFromContract(assertions[i], i);
-      if (parsed) {
-        queries.push(parsed);
+    // Convert to CombinedQuery
+    const queries: CombinedQuery[] = [];
+    let index = 0;
+    
+    for (const [assertionId, data] of assertionMap.entries()) {
+      const made = data.made;
+      if (!made) continue;
+      
+      const isSettled = !!data.settled;
+      const isDisputed = !!data.disputed && !isSettled;
+      
+      const expirationTime = Number(made.expiration_timestamp || 0);
+      const now = Math.floor(Date.now() / 1000);
+      const isExpired = expirationTime > 0 && expirationTime <= now;
+      
+      let status: "active" | "ended" | "disputed" = "active";
+      if (isSettled || isExpired) {
+        status = "ended";
+      } else if (isDisputed) {
+        status = "disputed";
       }
+      
+      const bond = parseU256(made.bond);
+      const identifier = felt252ToString(made.identifier);
+      const claim = parseByteArray(made.claim);
+      const settlementResolution = data.settled?.settlement_resolution;
+      
+      queries.push({
+        id: String(index + 1),
+        title: claim || `Assertion ${assertionId.slice(0, 10)}...`,
+        subtitle: formatTimestamp(expirationTime - 7200),
+        proposal: isSettled ? (settlementResolution ? 'true' : 'false') : 'Pending',
+        bond: formatBigInt(bond),
+        status,
+        timeLeft: expirationTime > 0 && !isSettled ? calculateTimeLeft(expirationTime) : undefined,
+        transactionHash: data.txHash,
+        eventIndex: String(index),
+        description: claim,
+        oracleType: 'optimistic-oracle-asserter',
+        identifier,
+        asserter: made.asserter?.toString(),
+        asserterTxHash: data.txHash,
+        caller: made.caller?.toString(),
+        escalationManager: made.escalation_manager?.toString(),
+        callbackRecipient: made.callback_recipient?.toString(),
+        currency: made.currency?.toString(),
+        result: isSettled ? (settlementResolution ? 'true' : 'false') : undefined,
+      });
+      
+      index++;
     }
     
     return queries;
   } catch (error) {
-    console.error('Error fetching assertions:', error);
+    console.error('Error fetching assertion events:', error);
     return [];
   }
 }
@@ -248,35 +396,6 @@ const MOCK_QUERIES: CombinedQuery[] = [
     callbackRecipient: '0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8',
     identifier: 'ASSERT_TRUTH',
   },
-  {
-    id: '4',
-    title: 'Cross-chain bridge security audit',
-    subtitle: formatTimestamp(Math.floor(Date.now() / 1000) - 86400),
-    proposal: '0',
-    bond: '5000',
-    status: 'ended',
-    transactionHash: '0x1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff',
-    eventIndex: '3',
-    description: 'Security audit verification for the cross-chain bridge implementation.',
-    oracleType: 'optimistic-oracle',
-    reward: '250',
-    eventBased: false,
-    result: '0',
-  },
-  {
-    id: '5',
-    title: 'Insurance claim payout trigger',
-    subtitle: formatTimestamp(Math.floor(Date.now() / 1000) - 172800),
-    proposal: 'true',
-    bond: '1500',
-    status: 'ended',
-    transactionHash: '0xfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210',
-    eventIndex: '4',
-    description: 'Assertion for insurance protocol claim verification.',
-    oracleType: 'optimistic-oracle-asserter',
-    asserter: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d',
-    result: 'true',
-  },
 ];
 
 // Main hook to fetch all oracle data
@@ -290,10 +409,25 @@ export function useOracleEvents() {
     setError(null);
     
     try {
+      const ooDeployBlock = OPTIMISTIC_ORACLE_DEPLOY_BLOCK || 0;
+      const ooManagedDeployBlock = OPTIMISTIC_ORACLE_MANAGED_DEPLOY_BLOCK || 0;
+      
       const [ooQueries, ooManagedQueries, ooAsserterQueries] = await Promise.all([
-        fetchAllRequestsFromContract(OPTIMISTIC_ORACLE_ADDRESS, 'optimistic-oracle'),
-        fetchAllRequestsFromContract(OPTIMISTIC_ORACLE_MANAGED_ADDRESS, 'optimistic-oracle-managed'),
-        fetchAllAssertionsFromContract(),
+        fetchRequestsFromEvents(
+          OPTIMISTIC_ORACLE_ADDRESS, 
+          ooDeployBlock, 
+          ooAbi as Abi, 
+          OO_EVENTS, 
+          'optimistic-oracle'
+        ),
+        fetchRequestsFromEvents(
+          OPTIMISTIC_ORACLE_MANAGED_ADDRESS, 
+          ooManagedDeployBlock, 
+          ooManagedAbi as Abi, 
+          MANAGED_EVENTS, 
+          'optimistic-oracle-managed'
+        ),
+        fetchAssertionsFromEvents(),
       ]);
       
       // Re-assign unique IDs
@@ -303,7 +437,7 @@ export function useOracleEvents() {
         id: String(++idCounter),
       }));
       
-      console.log(`Fetched ${allQueries.length} total queries:`, {
+      console.log(`Fetched ${allQueries.length} total queries from events:`, {
         oo: ooQueries.length,
         ooManaged: ooManagedQueries.length,
         ooAsserter: ooAsserterQueries.length,
@@ -317,11 +451,10 @@ export function useOracleEvents() {
         setQueries(allQueries);
       }
     } catch (err) {
-      console.error('Error fetching oracle data:', err);
-      // On error, still show mock data for better UX
+      console.error('Error fetching oracle events:', err);
       console.log('Falling back to mock data due to error');
       setQueries(MOCK_QUERIES);
-      setError(null); // Clear error since we're showing mock data
+      setError(null);
     } finally {
       setLoading(false);
     }
