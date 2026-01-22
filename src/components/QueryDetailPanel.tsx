@@ -95,7 +95,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
       />
 
       {/* Panel */}
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-background border-l border-border z-50 overflow-y-auto animate-slide-in-right">
+      <div className="fixed inset-y-0 right-0 w-full max-w-md bg-background border-l border-border z-50 overflow-y-auto animate-slide-in-right">
         {/* Header */}
         <div className="sticky top-0 bg-background border-b border-border p-4">
           <div className="flex items-start justify-between gap-4">
