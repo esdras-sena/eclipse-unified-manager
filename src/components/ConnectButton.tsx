@@ -1,6 +1,7 @@
 import Chevron from "../assets/icons/chevron.svg";
 import type { CSSProperties } from "react";
 import styled from "styled-components";
+import ReactDOM from "react-dom";
 import { useAccount, useConnect, useDisconnect, useStarkProfile, useNetwork } from "@starknet-react/core";
 import AddressBar from "./lib/AddressIcon";
 import GenericModal from "./lib/GenericModal";
@@ -111,7 +112,7 @@ const UserModal = () => {
   );
 };
 
-// Wallet selection modal component
+// Wallet selection modal component - rendered via portal for correct stacking
 const WalletSelectModal = ({ 
   isOpen, 
   onClose, 
@@ -129,17 +130,24 @@ const WalletSelectModal = ({
 }) => {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  // Use ReactDOM.createPortal to render modal at document.body level
+  return ReactDOM.createPortal(
+    <div 
+      className="fixed inset-0 flex items-center justify-center"
+      style={{ zIndex: 99999 }}
+    >
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/60" 
+        className="absolute inset-0 bg-black/70" 
         onClick={onClose}
       />
       {/* Modal */}
-      <div className="relative z-10 w-[92vw] max-w-[24rem] rounded-[16px] border border-border bg-black p-5 text-card-foreground shadow-lg">
+      <div 
+        className="relative w-[92vw] max-w-[24rem] rounded-[16px] border border-border bg-black p-5 text-card-foreground shadow-2xl"
+        style={{ zIndex: 100000 }}
+      >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Connect Wallet</h3>
+          <h3 className="text-lg font-semibold text-white">Connect Wallet</h3>
           <button
             className="grid h-8 w-8 place-content-center rounded-full hover:bg-muted"
             onClick={onClose}
@@ -155,7 +163,7 @@ const WalletSelectModal = ({
                 onConnect(connector);
               }}
               disabled={isConnecting}
-              className="flex items-center gap-3 w-full p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 transition-colors text-left"
+              className="flex items-center gap-3 w-full p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 transition-colors text-left disabled:opacity-50"
             >
               {connector.icon && (
                 <img 
@@ -167,7 +175,7 @@ const WalletSelectModal = ({
                   }}
                 />
               )}
-              <span className="font-medium">{connector.name || connector.id}</span>
+              <span className="font-medium text-white">{connector.name || connector.id}</span>
             </button>
           ))}
         </div>
@@ -176,7 +184,8 @@ const WalletSelectModal = ({
           <p className="mt-3 text-sm text-destructive">{errorText}</p>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
