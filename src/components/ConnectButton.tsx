@@ -2,16 +2,14 @@ import Chevron from "../assets/icons/chevron.svg";
 import Warning from "../assets/icons/warning.svg";
 import type { CSSProperties } from "react";
 import styled from "styled-components";
-import { Connector, useAccount, useConnect, useDisconnect, useStarkProfile, useNetwork } from "@starknet-react/core";
-import { useStarknetkitConnectModal } from "starknetkit";
+import { useAccount, useConnect, useDisconnect, useStarkProfile, useNetwork } from "@starknet-react/core";
 import AddressBar from "./lib/AddressIcon";
 import GenericModal from "./lib/GenericModal";
 import Close from "../svg/Close";
-import { blo } from 'blo';
 import CopyButton from "./lib/CopyButton";
 import Blockies from "react-blockies";
 import AccountBalance from "./lib/AccountBalance";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 const UserModal = () => {
   const { address } = useAccount();
@@ -28,7 +26,6 @@ const UserModal = () => {
   return (
     <GenericModal
       popoverId="user-popover"
-    // style={{ position: "fixed", inset: 0, zIndex: 1000 }}
     >
       {/* Backdrop */}
       <div
@@ -115,39 +112,92 @@ const UserModal = () => {
   );
 };
 
+// Wallet selection modal component
+const WalletSelectModal = ({ 
+  isOpen, 
+  onClose, 
+  connectors, 
+  onConnect 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  connectors: any[]; 
+  onConnect: (connector: any) => void;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/60" 
+        onClick={onClose}
+      />
+      {/* Modal */}
+      <div className="relative z-10 w-[92vw] max-w-[24rem] rounded-[16px] border border-border bg-black p-5 text-card-foreground shadow-lg">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Connect Wallet</h3>
+          <button
+            className="grid h-8 w-8 place-content-center rounded-full hover:bg-muted"
+            onClick={onClose}
+          >
+            <Close />
+          </button>
+        </div>
+        <div className="flex flex-col gap-2">
+          {connectors.map((connector) => (
+            <button
+              key={connector.id}
+              onClick={() => {
+                onConnect(connector);
+                onClose();
+              }}
+              className="flex items-center gap-3 w-full p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 transition-colors text-left"
+            >
+              {connector.icon && (
+                <img 
+                  src={typeof connector.icon === 'string' ? connector.icon : connector.icon?.dark || connector.icon?.light} 
+                  alt={connector.name} 
+                  className="w-8 h-8 rounded-lg"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              )}
+              <span className="font-medium">{connector.name || connector.id}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export function ConnectButton() {
-  const { isConnected } = useAccount()
-  const { connect, connectors, connector } = useConnect();
-  const [open, setOpen] = useState(false);
+  const { isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
-  const connectWallet = async () => {
-    const { starknetkitConnectModal } = useStarknetkitConnectModal({
-      connectors: connectors as any
-    })
-
-    const { connector: rawConnector } = await starknetkitConnectModal();
-    const connector = rawConnector ?? undefined;
-    await connect({ connector })
-  }
-
-  const WalletButton = styled.button`
-    background: none;
-    display: flex;
-    gap: 15px;
-  `;
-
-  const WalletButtonPrimaryWrapper = styled(Wrapper)`
-  color: var(--white);
-  background-color: var(--red-500);
-  &:hover {
-    background-color: var(--red-600);
-  }
-`;
+  const handleConnect = useCallback(async (connector: any) => {
+    setIsConnecting(true);
+    try {
+      await connect({ connector });
+    } catch (error) {
+      console.error('Wallet connection error:', error);
+      // Handle the wallet_switchStarknetChain error gracefully
+      if (error instanceof Error && error.message.includes('wallet_switchStarknetChain')) {
+        console.log('Chain switch not supported, but wallet may still be connected');
+      }
+    } finally {
+      setIsConnecting(false);
+    }
+  }, [connect]);
 
   const togglePopover = ({ targetId }: { targetId: string }) => {
     const popover = document.getElementById(targetId);
     // @ts-ignore
-    popover.togglePopover();
+    popover?.togglePopover();
     if (popover) {
       popover.addEventListener("toggle", () => {
         if (popover.matches(":popover-open")) {
@@ -159,18 +209,26 @@ export function ConnectButton() {
     }
   };
 
-
   return (
-    <Wrapper >
+    <Wrapper>
       {(() => {
         if (!isConnected) {
-
           return (
-            <Button style={connectButtonStyle} onClick={async () => {
-              await connectWallet()
-            }}>
-              Connect wallet
-            </Button>
+            <>
+              <Button 
+                style={connectButtonStyle} 
+                onClick={() => setWalletModalOpen(true)}
+                disabled={isConnecting}
+              >
+                {isConnecting ? 'Connecting...' : 'Connect wallet'}
+              </Button>
+              <WalletSelectModal
+                isOpen={walletModalOpen}
+                onClose={() => setWalletModalOpen(false)}
+                connectors={connectors}
+                onConnect={handleConnect}
+              />
+            </>
           );
         }
 
@@ -200,8 +258,6 @@ export function ConnectButton() {
       })()}
     </Wrapper>
   );
-
-
 }
 
 const connectButtonStyle = {
@@ -224,13 +280,6 @@ const Wrapper = styled.div`
   user-select: var(--user-select);
 `;
 
-
-const ButtonInnerWrapper = styled.div`
-  color: inherit;
-  display: flex;
-  gap: 20px;
-`;
-
 const Button = styled.button`
   display: flex;
   align-items: center;
@@ -248,18 +297,9 @@ const Button = styled.button`
   &:hover {
     filter: brightness(1.2);
   }
-`;
-
-const WrongNetworkButton = styled(Button)`
-  gap: 8px;
-`;
-
-const ChevronIcon = styled(Chevron)``;
-
-const WarningIcon = styled(Warning)`
-  width: 16px;
-  path {
-    fill: var(--white);
-    stroke: var(--red-500);
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 `;
