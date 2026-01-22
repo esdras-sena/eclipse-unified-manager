@@ -193,18 +193,39 @@ async function fetchRequestsFromEvents(
       
       const identifier = felt252ToString(req.identifier);
       const requestTimestamp = Number(req.timestamp || 0);
+      const ancillaryDataStr = parseByteArray(req.ancillaryData);
+      
+      // Format proposal value based on identifier type
+      let proposalDisplay = 'Pending';
+      if (isProposed) {
+        if (identifier === 'YES_OR_NO_QUERY') {
+          // For YES_OR_NO_QUERY: 1 = YES, 0 = NO
+          proposalDisplay = proposedPrice === BigInt(1) ? 'YES' : proposedPrice === BigInt(0) ? 'NO' : formatBigInt(proposedPrice);
+        } else {
+          proposalDisplay = formatBigInt(proposedPrice);
+        }
+      }
+      
+      // Format result value based on identifier type
+      let resultDisplay: string | undefined = undefined;
+      if (isSettled) {
+        if (identifier === 'YES_OR_NO_QUERY') {
+          resultDisplay = settledPrice === BigInt(1) ? 'YES' : settledPrice === BigInt(0) ? 'NO' : formatBigInt(settledPrice);
+        } else {
+          resultDisplay = formatBigInt(settledPrice);
+        }
+      }
       
       queries.push({
         id: String(index + 1),
-        title: `${identifier} @ ${requestTimestamp}`,
+        title: ancillaryDataStr || `${identifier} @ ${requestTimestamp}`, // ancillaryData is the title
         subtitle: formatTimestamp(requestTimestamp),
-        proposal: isProposed ? formatBigInt(proposedPrice) : 'Pending',
+        proposal: proposalDisplay,
         bond: formatBigInt(finalFee),
         status,
         timeLeft: expirationTime > 0 && !isSettled ? calculateTimeLeft(expirationTime) : undefined,
         transactionHash: data.txHash,
         eventIndex: String(index),
-        description: parseByteArray(req.ancillaryData),
         oracleType,
         reward: formatBigInt(reward),
         eventBased: false,
@@ -218,7 +239,7 @@ async function fetchRequestsFromEvents(
         proposedTime: data.propose ? formatTimestamp(Number(data.propose.expirationTimestamp) - 7200) : undefined,
         proposedTimeUnix: data.propose ? String(Number(data.propose.expirationTimestamp) - 7200) : undefined,
         currency: req.currency?.toString(),
-        result: isSettled ? formatBigInt(settledPrice) : undefined,
+        result: resultDisplay,
       });
       
       index++;
@@ -471,8 +492,10 @@ export function useOracleEvents() {
 export function useVerifyQueries() {
   const { queries, loading, error, refetch } = useOracleEvents();
   
+  // Verify screen only shows requests that have been proposed (proposal !== 'Pending')
+  // and are not yet settled (active or disputed status)
   const verifyQueries = queries.filter(q => 
-    q.status === 'active' || q.status === 'disputed'
+    q.proposal !== 'Pending' && (q.status === 'active' || q.status === 'disputed')
   );
   
   return { queries: verifyQueries, loading, error, refetch };
