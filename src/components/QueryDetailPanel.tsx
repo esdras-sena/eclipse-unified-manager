@@ -48,6 +48,7 @@ interface QueryDetailPanelProps {
     escalationManager?: string;
     callbackRecipient?: string;
     // Common fields
+    transactionHash?: string;
     oracleAddress?: string;
     reward?: string;
   } | null;
@@ -326,7 +327,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
               <div className="flex justify-between items-center">
                 <span className="text-xs text-muted-foreground">UNIX</span>
                 <span className="text-sm text-foreground">
-                  {query.requestedTimeUnix || "1768561402"}
+                  {query.requestedTimeUnix || "-"}
                 </span>
               </div>
             </div>
@@ -340,13 +341,13 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">UTC</span>
                   <span className="text-sm text-foreground">
-                    {query.proposedTime || "Sun, 18 Jan 2026 10:30:00 GMT"}
+                    {query.proposedTime || "-"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">UNIX</span>
                   <span className="text-sm text-foreground">
-                    {query.proposedTimeUnix || "1768732200"}
+                    {query.proposedTimeUnix || "-"}
                   </span>
                 </div>
               </div>
@@ -361,13 +362,13 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">UTC</span>
                   <span className="text-sm text-foreground">
-                    {query.settledTime || "Sun, 18 Jan 2026 12:15:21 GMT"}
+                    {query.settledTime || "-"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">UNIX</span>
                   <span className="text-sm text-foreground">
-                    {query.settledTimeUnix || "1768738521"}
+                    {query.settledTimeUnix || "-"}
                   </span>
                 </div>
               </div>
@@ -426,148 +427,138 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
               )}
 
               {/* Oracle Address */}
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-foreground">
-                  {getOracleTypeLabel()}
-                </span>
-                <CopyButton
-                  copyText={query.oracleAddress || "0x2aBf1Bd76655de80eDB3086114315Eec75AF500c"}
-                  buttonText={query.oracleAddress || "0x2aBf1Bd76655de80eDB3086114315Eec75AF500c"}
-                  className="text-sm text-primary hover:underline block truncate"
-                />
-              </div>
+              {query.oracleAddress && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">
+                    {getOracleTypeLabel()}
+                  </span>
+                  <CopyButton
+                    copyText={query.oracleAddress}
+                    buttonText={query.oracleAddress}
+                    className="text-sm text-primary hover:underline block truncate"
+                  />
+                </div>
+              )}
 
               {/* Requester - for Request types */}
-              {!isAsserterType && (
+              {!isAsserterType && query.requester && (
                 <div className="space-y-1">
                   <span className="text-xs font-medium text-foreground">Requester</span>
                   <CopyButton
-                    copyText={query.requester || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
-                    buttonText={query.requester || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
+                    copyText={query.requester}
+                    buttonText={query.requester}
                     className="text-sm text-primary hover:underline block truncate"
                   />
                 </div>
               )}
 
               {/* Requester Transaction - for Request types */}
-              {!isAsserterType && (
+              {!isAsserterType && query.requesterTxHash && (
                 <div className="space-y-1">
                   <span className="text-xs font-medium text-foreground">Requester Transaction</span>
                   <a
-                    href={`https://starkscan.co/tx/${query.requesterTxHash || "0x123..."}`}
+                    href={`https://sepolia.starkscan.co/tx/${query.requesterTxHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
                   >
-                    {query.requesterTxHash || "0x123..."}
+                    {query.requesterTxHash}
                     <ExternalLink className="h-3 w-3 flex-shrink-0" />
                   </a>
                 </div>
               )}
 
               {/* Proposer - for Request types */}
-              {!isAsserterType && (
+              {!isAsserterType && query.proposer && (
                 <div className="space-y-1">
                   <span className="text-xs font-medium text-foreground">Proposer</span>
                   <CopyButton
-                    copyText={query.proposer || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
-                    buttonText={query.proposer || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
+                    copyText={query.proposer}
+                    buttonText={query.proposer}
                     className="text-sm text-primary hover:underline block truncate"
                   />
                 </div>
               )}
 
               {/* Proposal Transaction - for Request types */}
-              {!isAsserterType && (type === "verify" || type === "settled") && (
+              {!isAsserterType && (type === "verify" || type === "settled") && query.proposerTxHash && (
                 <div className="space-y-1">
                   <span className="text-xs font-medium text-foreground">Proposal Transaction</span>
                   <a
-                    href={`https://starkscan.co/tx/${query.proposerTxHash || "0x456..."}`}
+                    href={`https://sepolia.starkscan.co/tx/${query.proposerTxHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
                   >
-                    {query.proposerTxHash || "0x456..."}
+                    {query.proposerTxHash}
                     <ExternalLink className="h-3 w-3 flex-shrink-0" />
                   </a>
                 </div>
               )}
 
               {/* Asserter - for Asserter type */}
-              {isAsserterType && (
+              {isAsserterType && query.asserter && (
                 <div className="space-y-1">
                   <span className="text-xs font-medium text-foreground">Asserter</span>
                   <CopyButton
-                    copyText={query.asserter || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
-                    buttonText={query.asserter || "0x41779cf643f5302fe64c1eff4c128b9abca257d0"}
+                    copyText={query.asserter}
+                    buttonText={query.asserter}
                     className="text-sm text-primary hover:underline block truncate"
                   />
                 </div>
               )}
 
               {/* Asserter Transaction - for Asserter type */}
-              {isAsserterType && (
+              {isAsserterType && query.asserterTxHash && (
                 <div className="space-y-1">
                   <span className="text-xs font-medium text-foreground">Asserter Transaction</span>
                   <a
-                    href={`https://starkscan.co/tx/${query.asserterTxHash || "0x123..."}`}
+                    href={`https://sepolia.starkscan.co/tx/${query.asserterTxHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
                   >
-                    {query.asserterTxHash || "0x123..."}
+                    {query.asserterTxHash}
                     <ExternalLink className="h-3 w-3 flex-shrink-0" />
                   </a>
                 </div>
               )}
 
               {/* Caller - for Asserter type */}
-              {isAsserterType && (
+              {isAsserterType && query.caller && (
                 <div className="space-y-1">
                   <span className="text-xs font-medium text-foreground">Caller</span>
                   <CopyButton
-                    copyText={query.caller || "0x0000000000000000000000000000000000000000"}
-                    buttonText={query.caller || "0x0000000000000000000000000000000000000000"}
+                    copyText={query.caller}
+                    buttonText={query.caller}
                     className="text-sm text-primary hover:underline block truncate"
                   />
                 </div>
               )}
 
               {/* Escalation Manager - for Asserter type */}
-              {isAsserterType && (
+              {isAsserterType && query.escalationManager && (
                 <div className="space-y-1">
                   <span className="text-xs font-medium text-foreground">
                     Escalation Manager
                   </span>
                   <CopyButton
-                    copyText={
-                      query.escalationManager ||
-                      "0x0000000000000000000000000000000000000000"
-                    }
-                    buttonText={
-                      query.escalationManager ||
-                      "0x0000000000000000000000000000000000000000"
-                    }
+                    copyText={query.escalationManager}
+                    buttonText={query.escalationManager}
                     className="text-sm text-primary hover:underline block truncate"
                   />
                 </div>
               )}
 
               {/* Callback Recipient - for Asserter type */}
-              {isAsserterType && (
+              {isAsserterType && query.callbackRecipient && (
                 <div className="space-y-1">
                   <span className="text-xs font-medium text-foreground">
                     Callback Recipient
                   </span>
                   <CopyButton
-                    copyText={
-                      query.callbackRecipient ||
-                      "0x47ee4de132e2404ae166b644487a44189c04c26c"
-                    }
-                    buttonText={
-                      query.callbackRecipient ||
-                      "0x47ee4de132e2404ae166b644487a44189c04c26c"
-                    }
+                    copyText={query.callbackRecipient}
+                    buttonText={query.callbackRecipient}
                     className="text-sm text-primary hover:underline block truncate"
                   />
                 </div>
@@ -576,15 +567,19 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
           </div>
 
           {/* View Transaction Link */}
-          <div className="pt-4 border-t border-border">
-            <a
-              href="#"
-              className="flex items-center gap-2 text-sm text-primary hover:underline"
-            >
-              <ExternalLink className="h-4 w-4" />
-              View transaction on explorer
-            </a>
-          </div>
+          {query.transactionHash && (
+            <div className="pt-4 border-t border-border">
+              <a
+                href={`https://sepolia.starkscan.co/tx/${query.transactionHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                <ExternalLink className="h-4 w-4" />
+                View transaction on explorer
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </>
