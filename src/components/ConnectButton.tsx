@@ -128,7 +128,9 @@ const WalletSelectModal = ({
   isConnecting: boolean;
   errorText?: string | null;
 }) => {
-  // Lock scroll while open (must be before any conditional returns to follow Rules of Hooks)
+  // ALL HOOKS MUST BE BEFORE ANY CONDITIONAL RETURNS (Rules of Hooks)
+  
+  // Lock scroll while open
   useEffect(() => {
     if (!isOpen) return;
     const prev = document.body.style.overflow;
@@ -138,11 +140,9 @@ const WalletSelectModal = ({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
+  // Sort connectors - WebWallet (email) last, then the rest alphabetically
   const sortedConnectors = useMemo(() => {
     const list = Array.isArray(connectors) ? [...connectors] : [];
-    // Keep WebWallet (email) last, then the rest alphabetically.
     return list.sort((a, b) => {
       const aIsEmail = a?.id === "argentWebWallet";
       const bIsEmail = b?.id === "argentWebWallet";
@@ -154,6 +154,9 @@ const WalletSelectModal = ({
 
   // Ready (Email) icon - orange "R" badge similar to the Ready branding
   const readyEmailIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23FF875B'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial,sans-serif' font-weight='bold' font-size='22' fill='white'%3ER%3C/text%3E%3C/svg%3E";
+
+  // Early return AFTER all hooks
+  if (!isOpen) return null;
 
   // Use ReactDOM.createPortal to render modal at document.body level
   return createPortal(
