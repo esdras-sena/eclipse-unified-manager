@@ -1,5 +1,4 @@
 import Chevron from "../assets/icons/chevron.svg";
-import Warning from "../assets/icons/warning.svg";
 import type { CSSProperties } from "react";
 import styled from "styled-components";
 import { useAccount, useConnect, useDisconnect, useStarkProfile, useNetwork } from "@starknet-react/core";
@@ -117,12 +116,16 @@ const WalletSelectModal = ({
   isOpen, 
   onClose, 
   connectors, 
-  onConnect 
+  onConnect,
+  isConnecting,
+  errorText,
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
   connectors: any[]; 
   onConnect: (connector: any) => void;
+  isConnecting: boolean;
+  errorText?: string | null;
 }) => {
   if (!isOpen) return null;
 
@@ -150,8 +153,8 @@ const WalletSelectModal = ({
               key={connector.id}
               onClick={() => {
                 onConnect(connector);
-                onClose();
               }}
+              disabled={isConnecting}
               className="flex items-center gap-3 w-full p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 transition-colors text-left"
             >
               {connector.icon && (
@@ -168,6 +171,10 @@ const WalletSelectModal = ({
             </button>
           ))}
         </div>
+
+        {errorText ? (
+          <p className="mt-3 text-sm text-destructive">{errorText}</p>
+        ) : null}
       </div>
     </div>
   );
@@ -175,24 +182,35 @@ const WalletSelectModal = ({
 
 export function ConnectButton() {
   const { isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
+  const { connectAsync, connectors } = useConnect();
   const [walletModalOpen, setWalletModalOpen] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [connectErrorText, setConnectErrorText] = useState<string | null>(null);
 
   const handleConnect = useCallback(async (connector: any) => {
     setIsConnecting(true);
+    setConnectErrorText(null);
     try {
-      await connect({ connector });
+      await connectAsync({ connector });
+      setWalletModalOpen(false);
     } catch (error) {
-      console.error('Wallet connection error:', error);
-      // Handle the wallet_switchStarknetChain error gracefully
-      if (error instanceof Error && error.message.includes('wallet_switchStarknetChain')) {
-        console.log('Chain switch not supported, but wallet may still be connected');
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error("Wallet connection error:", error);
+
+      // Common case: many wallets don't support chain switching from dApps.
+      if (msg.includes("wallet_switchStarknetChain")) {
+        setConnectErrorText(
+          "Your wallet doesn't support network switching from dApps. Open the wallet and switch to the correct network (e.g. Starknet Sepolia), then try again.",
+        );
+        return;
       }
+
+      // Fallback: show the error message.
+      setConnectErrorText(msg || "Failed to connect wallet");
     } finally {
       setIsConnecting(false);
     }
-  }, [connect]);
+  }, [connectAsync]);
 
   const togglePopover = ({ targetId }: { targetId: string }) => {
     const popover = document.getElementById(targetId);
@@ -227,6 +245,8 @@ export function ConnectButton() {
                 onClose={() => setWalletModalOpen(false)}
                 connectors={connectors}
                 onConnect={handleConnect}
+                isConnecting={isConnecting}
+                errorText={connectErrorText}
               />
             </>
           );
