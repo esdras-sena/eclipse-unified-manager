@@ -195,6 +195,20 @@ async function fetchRequestsFromEvents(
       const requestTimestamp = Number(req.timestamp || 0);
       const ancillaryDataStr = parseByteArray(req.ancillaryData);
       
+      // Parse ancillaryData for title and description
+      // Pattern: "q: [title] : [description]" or just plain text as title
+      let title = ancillaryDataStr || `${identifier} @ ${requestTimestamp}`;
+      let description: string | undefined = undefined;
+      
+      if (ancillaryDataStr) {
+        // Check for pattern: "q: title : description"
+        const qMatch = ancillaryDataStr.match(/^q:\s*(.+?)\s*:\s*(.+)$/s);
+        if (qMatch) {
+          title = qMatch[1].trim();
+          description = qMatch[2].trim();
+        }
+      }
+      
       // Format proposal value based on identifier type
       let proposalDisplay = 'Pending';
       if (isProposed) {
@@ -218,7 +232,7 @@ async function fetchRequestsFromEvents(
       
       queries.push({
         id: String(index + 1),
-        title: ancillaryDataStr || `${identifier} @ ${requestTimestamp}`, // ancillaryData is the title
+        title,
         subtitle: formatTimestamp(requestTimestamp),
         proposal: proposalDisplay,
         bond: formatBigInt(finalFee),
@@ -226,6 +240,7 @@ async function fetchRequestsFromEvents(
         timeLeft: expirationTime > 0 && !isSettled ? calculateTimeLeft(expirationTime) : undefined,
         transactionHash: data.txHash,
         eventIndex: String(index),
+        description,
         oracleType,
         reward: formatBigInt(reward),
         eventBased: false,
@@ -330,12 +345,25 @@ async function fetchAssertionsFromEvents(): Promise<CombinedQuery[]> {
       
       const bond = parseU256(made.bond);
       const identifier = felt252ToString(made.identifier);
-      const claim = parseByteArray(made.claim);
+      const claimStr = parseByteArray(made.claim);
       const settlementResolution = data.settled?.settlement_resolution;
+      
+      // Parse claim for title and description
+      // Pattern: "q: [title] : [description]" or just plain text as title
+      let assertTitle = claimStr || `Assertion ${assertionId.slice(0, 10)}...`;
+      let assertDescription: string | undefined = undefined;
+      
+      if (claimStr) {
+        const qMatch = claimStr.match(/^q:\s*(.+?)\s*:\s*(.+)$/s);
+        if (qMatch) {
+          assertTitle = qMatch[1].trim();
+          assertDescription = qMatch[2].trim();
+        }
+      }
       
       queries.push({
         id: String(index + 1),
-        title: claim || `Assertion ${assertionId.slice(0, 10)}...`,
+        title: assertTitle,
         subtitle: formatTimestamp(expirationTime - 7200),
         proposal: isSettled ? (settlementResolution ? 'true' : 'false') : 'Pending',
         bond: formatBigInt(bond),
@@ -343,7 +371,7 @@ async function fetchAssertionsFromEvents(): Promise<CombinedQuery[]> {
         timeLeft: expirationTime > 0 && !isSettled ? calculateTimeLeft(expirationTime) : undefined,
         transactionHash: data.txHash,
         eventIndex: String(index),
-        description: claim,
+        description: assertDescription,
         oracleType: 'optimistic-oracle-asserter',
         identifier,
         asserter: made.asserter?.toString(),
