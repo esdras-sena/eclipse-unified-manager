@@ -141,15 +141,18 @@ const WalletSelectModal = ({
 
   const sortedConnectors = useMemo(() => {
     const list = Array.isArray(connectors) ? [...connectors] : [];
-    // Keep WebWallet (email) first, then the rest alphabetically.
+    // Keep WebWallet (email) last, then the rest alphabetically.
     return list.sort((a, b) => {
       const aIsEmail = a?.id === "argentWebWallet";
       const bIsEmail = b?.id === "argentWebWallet";
-      if (aIsEmail && !bIsEmail) return -1;
-      if (!aIsEmail && bIsEmail) return 1;
+      if (aIsEmail && !bIsEmail) return 1;
+      if (!aIsEmail && bIsEmail) return -1;
       return String(a?.name || a?.id || "").localeCompare(String(b?.name || b?.id || ""));
     });
   }, [connectors]);
+
+  // Ready (Email) icon - orange "R" badge similar to the Ready branding
+  const readyEmailIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23FF875B'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial,sans-serif' font-weight='bold' font-size='22' fill='white'%3ER%3C/text%3E%3C/svg%3E";
 
   // Use ReactDOM.createPortal to render modal at document.body level
   return createPortal(
@@ -180,11 +183,13 @@ const WalletSelectModal = ({
         </div>
         <div className="flex flex-col gap-2">
           {sortedConnectors.map((connector) => {
-            const displayName =
-              connector?.id === "argentWebWallet" ? "Ready (Email)" : (connector?.name || connector?.id);
-            const iconSrc = connector?.icon
-              ? (typeof connector.icon === "string" ? connector.icon : (connector.icon?.dark || connector.icon?.light))
-              : null;
+            const isEmailConnector = connector?.id === "argentWebWallet";
+            const displayName = isEmailConnector ? "Ready (Email)" : (connector?.name || connector?.id);
+            const iconSrc = isEmailConnector
+              ? readyEmailIcon
+              : (connector?.icon
+                  ? (typeof connector.icon === "string" ? connector.icon : (connector.icon?.dark || connector.icon?.light))
+                  : null);
 
             return (
             <button
