@@ -100,6 +100,7 @@ export interface CombinedQuery {
   description?: string;
   eventBased?: boolean;
   oracleType: OracleType;
+  oracleAddress?: string;
   reward?: string;
   // Request-type fields
   identifier?: string;
