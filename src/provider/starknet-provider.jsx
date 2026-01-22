@@ -2,8 +2,6 @@
 import { sepolia, mainnet } from "@starknet-react/chains";
 import {
   alchemyProvider,
-  argent,
-  braavos,
   jsonRpcProvider,
   infuraProvider,
   lavaProvider,
@@ -11,22 +9,13 @@ import {
   cartridgeProvider,
   StarknetConfig,
   starkscan,
-  useInjectedConnectors,
 } from "@starknet-react/core";
 
 import { InjectedConnector } from "starknetkit/injected";
 import { ArgentMobileConnector } from "starknetkit/argentMobile";
 import { WebWalletConnector } from "starknetkit/webwallet";
 
-import { RpcProvider } from "starknet";
-
-
 export function StarknetProvider({ children }) {
-  const { connectors: injected } = useInjectedConnectors({
-    recommended: [argent(), braavos()],
-    includeRecommended: "always",
-  });
-  
   const connectors = [
     new InjectedConnector({ options: { id: "argentX", name: "Argent" } }),
     new InjectedConnector({ options: { id: "braavos", name: "Braavos" } }),
