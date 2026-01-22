@@ -8,9 +8,12 @@ import {
   argent,
   braavos,
 } from "@starknet-react/core";
+import { WebWalletConnector } from "starknetkit/webwallet";
 
 // Create connectors once at module level - these are factory functions, not hooks
-const connectors = [argent(), braavos()];
+// WebWalletConnector = Ready (Email) connector for passwordless login
+const webWalletConnector = new WebWalletConnector({ url: "https://web.argent.xyz" });
+const connectors = [webWalletConnector, argent(), braavos()];
 
 // Provider configuration - pure function, safe at module level
 const provider = jsonRpcProvider({
