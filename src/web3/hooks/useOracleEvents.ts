@@ -132,6 +132,7 @@ async function fetchAllRequestsFromContract(
     
     // Call get_all_requests
     const result = await contract.call('get_all_requests');
+    console.log("requests fetched ",result)
     
     if (!result || !Array.isArray(result)) {
       console.log(`No requests found for ${oracleType}`);
@@ -177,6 +178,7 @@ async function fetchAllAssertionsFromContract(): Promise<CombinedQuery[]> {
       return [];
     }
     
+    console.log("assertions fetched ", result)
     const assertions = result as any[];
     const queries: CombinedQuery[] = [];
     
