@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React from "react";
 import { sepolia, mainnet } from "@starknet-react/chains";
 import {
   jsonRpcProvider,
@@ -9,7 +9,10 @@ import {
   braavos,
 } from "@starknet-react/core";
 
-// Provider configuration - this is a pure function, safe to call at module level
+// Create connectors once at module level - these are factory functions, not hooks
+const connectors = [argent(), braavos()];
+
+// Provider configuration - pure function, safe at module level
 const provider = jsonRpcProvider({
   rpc: (chain) => {
     const envSepolia = import.meta.env.VITE_SEPOLIA_RPC_URL;
@@ -43,11 +46,9 @@ function getDefaultChainId() {
   return chainHint.includes("main") ? mainnet.id : sepolia.id;
 }
 
-export function StarknetProvider({ children }) {
-  // Create connectors inside the component to ensure proper React context
-  const connectors = useMemo(() => [argent(), braavos()], []);
-  const defaultChainId = useMemo(() => getDefaultChainId(), []);
+const defaultChainId = getDefaultChainId();
 
+export function StarknetProvider({ children }) {
   return (
     <StarknetConfig
       connectors={connectors}
