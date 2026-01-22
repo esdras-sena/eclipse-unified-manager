@@ -17,7 +17,9 @@ import {
   formatBigInt,
   parseU256,
   parseI256,
-  felt252ToString
+  felt252ToString,
+  normalizeAddress,
+  normalizeFelt
 } from '../utils/helpers';
 
 // Import local ABIs
@@ -135,9 +137,9 @@ async function fetchRequestsFromEvents(
         if (event[eventName]) {
           const data = event[eventName];
           const key = getRequestKey(
-            data.requester?.toString() || '',
-            data.identifier?.toString() || '',
-            data.timestamp?.toString() || '',
+            normalizeAddress(data.requester) || '',
+            normalizeFelt(data.identifier) || '',
+            normalizeFelt(data.timestamp) || '',
             parseByteArray(data.ancillaryData)
           );
           
@@ -246,15 +248,15 @@ async function fetchRequestsFromEvents(
         reward: formatBigInt(reward),
         eventBased: false,
         identifier,
-        requester: req.requester?.toString(),
+        requester: normalizeAddress(req.requester),
         requesterTxHash: data.txHash,
-        proposer: data.propose?.proposer?.toString(),
+        proposer: normalizeAddress(data.propose?.proposer),
         proposerTxHash: data.proposeTxHash,
         requestedTime: formatTimestamp(requestTimestamp),
         requestedTimeUnix: String(requestTimestamp),
         proposedTime: data.propose ? formatTimestamp(Number(data.propose.expirationTimestamp) - 7200) : undefined,
         proposedTimeUnix: data.propose ? String(Number(data.propose.expirationTimestamp) - 7200) : undefined,
-        currency: req.currency?.toString(),
+        currency: normalizeAddress(req.currency),
         result: resultDisplay,
       });
       
@@ -376,12 +378,12 @@ async function fetchAssertionsFromEvents(): Promise<CombinedQuery[]> {
         oracleType: 'optimistic-oracle-asserter',
         oracleAddress: OPTIMISTIC_ORACLE_ASSERTER_ADDRESS,
         identifier,
-        asserter: made.asserter?.toString(),
+        asserter: normalizeAddress(made.asserter),
         asserterTxHash: data.txHash,
-        caller: made.caller?.toString(),
-        escalationManager: made.escalation_manager?.toString(),
-        callbackRecipient: made.callback_recipient?.toString(),
-        currency: made.currency?.toString(),
+        caller: normalizeAddress(made.caller),
+        escalationManager: normalizeAddress(made.escalation_manager),
+        callbackRecipient: normalizeAddress(made.callback_recipient),
+        currency: normalizeAddress(made.currency),
         result: isSettled ? (settlementResolution ? 'true' : 'false') : undefined,
       });
       
@@ -394,60 +396,6 @@ async function fetchAssertionsFromEvents(): Promise<CombinedQuery[]> {
     return [];
   }
 }
-
-// Mock data for demonstration when no real data is available
-const MOCK_QUERIES: CombinedQuery[] = [
-  {
-    id: '1',
-    title: 'Will ETH reach $5000 by end of 2025?',
-    subtitle: formatTimestamp(Math.floor(Date.now() / 1000) - 3600),
-    proposal: '1',
-    bond: '1000',
-    status: 'active',
-    timeLeft: '23h 45m',
-    transactionHash: '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-    eventIndex: '0',
-    description: 'This query asks whether Ethereum will reach a price of $5000 USD by December 31, 2025.',
-    oracleType: 'optimistic-oracle',
-    reward: '50',
-    eventBased: false,
-    proposer: '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
-    currency: '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
-  },
-  {
-    id: '2',
-    title: 'BTC halving impact verification',
-    subtitle: formatTimestamp(Math.floor(Date.now() / 1000) - 7200),
-    proposal: 'Pending',
-    bond: '500',
-    status: 'active',
-    timeLeft: '47h 30m',
-    transactionHash: '0xabcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789',
-    eventIndex: '1',
-    description: 'Verify the market impact of the BTC halving event.',
-    oracleType: 'optimistic-oracle-managed',
-    reward: '100',
-    eventBased: true,
-  },
-  {
-    id: '3',
-    title: 'Protocol governance vote outcome',
-    subtitle: formatTimestamp(Math.floor(Date.now() / 1000) - 1800),
-    proposal: 'true',
-    bond: '2000',
-    status: 'disputed',
-    timeLeft: '12h 15m',
-    transactionHash: '0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba',
-    eventIndex: '2',
-    description: 'Assertion about the outcome of governance proposal #42.',
-    oracleType: 'optimistic-oracle-asserter',
-    asserter: '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
-    caller: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d',
-    escalationManager: '0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8',
-    callbackRecipient: '0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8',
-    identifier: 'ASSERT_TRUTH',
-  },
-];
 
 // Main hook to fetch all oracle data
 export function useOracleEvents() {
@@ -493,19 +441,13 @@ export function useOracleEvents() {
         ooManaged: ooManagedQueries.length,
         ooAsserter: ooAsserterQueries.length,
       });
-      
-      // Use mock data if no real data is available
-      if (allQueries.length === 0) {
-        console.log('No real data found, using mock data for demonstration');
-        setQueries(MOCK_QUERIES);
-      } else {
-        setQueries(allQueries);
-      }
+
+      // Never fall back to mock/random data; if none found, show empty state.
+      setQueries(allQueries);
     } catch (err) {
       console.error('Error fetching oracle events:', err);
-      console.log('Falling back to mock data due to error');
-      setQueries(MOCK_QUERIES);
-      setError(null);
+      setQueries([]);
+      setError(err as Error);
     } finally {
       setLoading(false);
     }
