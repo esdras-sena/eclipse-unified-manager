@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Info, Clock, FileText, ExternalLink, CheckCircle, AlertTriangle, ChevronDown, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import CopyButton from "./lib/CopyButton";
@@ -57,6 +57,21 @@ interface QueryDetailPanelProps {
 const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProps) => {
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   
+  // Lock body scroll when panel is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isOpen]);
+  
   if (!isOpen || !query) return null;
 
   const getStatusColor = () => {
@@ -95,7 +110,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
       />
 
       {/* Panel */}
-      <div className="fixed inset-y-0 right-0 w-full max-w-md bg-background border-l border-border z-50 overflow-y-auto animate-slide-in-right">
+      <div className="fixed inset-y-0 right-0 w-full max-w-md bg-background border-l border-border z-50 overflow-y-auto overflow-x-hidden animate-slide-in-right touch-none">
         {/* Header */}
         <div className="sticky top-0 bg-background border-b border-border p-4">
           <div className="flex items-start justify-between gap-4">
