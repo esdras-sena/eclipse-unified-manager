@@ -1,9 +1,31 @@
 import { num } from 'starknet';
 
+// Normalize a felt/number/bigint into a 0x-prefixed hex string
+export function normalizeFelt(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  try {
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'bigint') {
+      return num.toHex(value as any);
+    }
+    // Common Starknet.js decoded structs are objects with a sensible toString()
+    return num.toHex((value as any).toString());
+  } catch {
+    return String(value);
+  }
+}
+
+// Normalize a ContractAddress-like value into a 0x-prefixed hex string
+export function normalizeAddress(value: unknown): string | undefined {
+  if (value === null || value === undefined) return undefined;
+  const hex = normalizeFelt(value);
+  return hex || undefined;
+}
+
 // Convert felt252 to string (for identifiers)
 export function felt252ToString(felt: string | bigint): string {
   try {
-    const hex = typeof felt === 'bigint' ? felt.toString(16) : felt;
+    // Starknet.js sometimes returns decimal strings; normalize to hex first.
+    const hex = typeof felt === 'bigint' ? num.toHex(felt) : normalizeFelt(felt);
     const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
     // Convert hex to bytes and then to string
     let str = '';
