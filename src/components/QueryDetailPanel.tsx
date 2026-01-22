@@ -382,13 +382,14 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
             </div>
 
             <div className="space-y-4">
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-foreground">Description</span>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {query.description ||
-                    "This market will resolve to the temperature range that contains the highest temperature recorded at the Seattle-Tacoma International Airport Station in degrees Fahrenheit on 18 Jan '26."}
-                </p>
-              </div>
+              {query.description && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-foreground">Description</span>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {query.description}
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-1">
                 <span className="text-xs font-medium text-foreground">String</span>
