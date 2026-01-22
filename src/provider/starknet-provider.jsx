@@ -1,4 +1,5 @@
 "use client";
+import React, { useMemo } from "react";
 import { sepolia, mainnet } from "@starknet-react/chains";
 import {
   jsonRpcProvider,
@@ -8,13 +9,7 @@ import {
   braavos,
 } from "@starknet-react/core";
 
-// Use built-in connectors from @starknet-react/core to avoid starknetkit hook issues
-const connectors = [
-  argent(),
-  braavos(),
-];
-
-// Provider configuration
+// Provider configuration - this is a pure function, safe to call at module level
 const provider = jsonRpcProvider({
   rpc: (chain) => {
     const envSepolia = import.meta.env.VITE_SEPOLIA_RPC_URL;
@@ -37,16 +32,22 @@ const provider = jsonRpcProvider({
 });
 
 // Determine default chain from environment or localStorage
-let lsHint = "";
-if (typeof window !== "undefined") {
-  try {
-    lsHint = (localStorage.getItem("preferredChain") || "").toLowerCase();
-  } catch {}
+function getDefaultChainId() {
+  let lsHint = "";
+  if (typeof window !== "undefined") {
+    try {
+      lsHint = (localStorage.getItem("preferredChain") || "").toLowerCase();
+    } catch {}
+  }
+  const chainHint = (lsHint || import.meta.env.VITE_CHAIN || "").toLowerCase();
+  return chainHint.includes("main") ? mainnet.id : sepolia.id;
 }
-const chainHint = (lsHint || import.meta.env.VITE_CHAIN || "").toLowerCase();
-const defaultChainId = chainHint.includes("main") ? mainnet.id : sepolia.id;
 
 export function StarknetProvider({ children }) {
+  // Create connectors inside the component to ensure proper React context
+  const connectors = useMemo(() => [argent(), braavos()], []);
+  const defaultChainId = useMemo(() => getDefaultChainId(), []);
+
   return (
     <StarknetConfig
       connectors={connectors}
