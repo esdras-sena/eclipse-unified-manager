@@ -85,7 +85,7 @@ export default function CopyButton({
       }}
       className={className}
     >
-      <span className="truncate">{buttonText}</span>
+      <span className="break-all">{buttonText}</span>
 
       <span aria-hidden className={iconClassName}>
         {isCopied ? <Check /> : <Copy />}
