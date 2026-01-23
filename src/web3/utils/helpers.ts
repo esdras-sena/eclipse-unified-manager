@@ -1,36 +1,5 @@
-import { num, ByteArray } from 'starknet';
+import { num } from 'starknet';
 
-// Convert a plain text string to a hex-encoded ByteArray struct for Starknet calldata.
-// The contract expects ancillaryData as a ByteArray where the data/pending_word are hex-encoded.
-export function stringToHexByteArray(str: string): ByteArray {
-  // Convert string to hex
-  let hex = '';
-  for (let i = 0; i < str.length; i++) {
-    hex += str.charCodeAt(i).toString(16).padStart(2, '0');
-  }
-
-  // Each bytes31 can hold 31 bytes = 62 hex chars
-  const BYTES31_LEN = 31;
-  const data: string[] = [];
-  let offset = 0;
-
-  while (offset + BYTES31_LEN * 2 <= hex.length) {
-    const chunk = hex.slice(offset, offset + BYTES31_LEN * 2);
-    data.push('0x' + chunk);
-    offset += BYTES31_LEN * 2;
-  }
-
-  // Remaining bytes go into pending_word
-  const remaining = hex.slice(offset);
-  const pendingWord = remaining.length > 0 ? '0x' + remaining : '0x0';
-  const pendingWordLen = remaining.length / 2;
-
-  return {
-    data,
-    pending_word: pendingWord,
-    pending_word_len: pendingWordLen,
-  };
-}
 
 // Normalize a felt/number/bigint into a 0x-prefixed hex string
 export function normalizeFelt(value: unknown): string {

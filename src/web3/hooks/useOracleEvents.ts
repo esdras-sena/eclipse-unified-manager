@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { RpcProvider, events, CallData, createAbiParser, Abi, Contract } from 'starknet';
+import { RpcProvider, events, CallData, createAbiParser, Abi, Contract, byteArray } from 'starknet';
 import { getNodeUrl } from '../utils/network';
 import { 
   OPTIMISTIC_ORACLE_ADDRESS, 
@@ -19,8 +19,7 @@ import {
   parseI256,
   felt252ToString,
   normalizeAddress,
-  normalizeFelt,
-  stringToHexByteArray
+  normalizeFelt
 } from '../utils/helpers';
 
 // Import local ABIs
@@ -235,15 +234,15 @@ async function fetchRequestsFromEvents(
         const req = data.request;
         const requester = normalizeAddress(req.requester) || '';
         const identifierRaw = normalizeFelt(req.identifier);
-        // Convert ancillaryData to hex-encoded ByteArray for contract call
+        // Convert ancillaryData to ByteArray using starknet.js
         const ancillaryDataStr = parseByteArray(req.ancillaryData);
-        const ancillaryDataHex = stringToHexByteArray(ancillaryDataStr);
+        const ancillaryDataByteArray = byteArray.byteArrayFromString(ancillaryDataStr);
         const contractData = await fetchRequestFromContract(
           contract,
           requester,
           identifierRaw,
           req.timestamp,
-          ancillaryDataHex
+          ancillaryDataByteArray
         );
         
         return contractData;
