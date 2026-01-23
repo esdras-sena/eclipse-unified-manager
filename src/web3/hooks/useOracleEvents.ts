@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { RpcProvider, events, CallData, createAbiParser, Abi, Contract, byteArray } from 'starknet';
+import { RpcProvider, events, CallData, createAbiParser, Abi, Contract } from 'starknet';
 import { getNodeUrl } from '../utils/network';
 import { 
   OPTIMISTIC_ORACLE_ADDRESS, 
@@ -31,39 +31,23 @@ function getProvider() {
   return new RpcProvider({ nodeUrl: getNodeUrl() });
 }
 
-// Fetch request details from contract to get bond from RequestSettings.
-// IMPORTANT: pass ancillaryData as the *raw ByteArray struct* from events to avoid re-encoding mismatches.
+// Fetch request details from contract using requestId.
+// The new contract API: get_request(requestId) returns the full Request struct.
 async function fetchRequestFromContract(
   contract: Contract,
-  requester: string,
-  identifier: string,
-  timestamp: unknown,
-  ancillaryData: unknown
+  requestId: string
 ): Promise<{ bond: bigint; eventBased: boolean } | null> {
   try {
-    // Debug: log the inputs being passed to get_request
-    console.log('=== get_request inputs ===');
-    console.log('requester:', requester);
-    console.log('identifier:', identifier);
-    console.log('timestamp:', timestamp);
-    console.log('ancillaryData:', JSON.stringify(ancillaryData, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+    console.log('=== get_request by requestId ===');
+    console.log('requestId:', requestId);
     
-    const result = await contract.callStatic.get_request(
-      requester,
-      identifier,
-      timestamp as any,
-      ancillaryData as any
-    );
+    const result = await contract.callStatic.get_request(requestId);
 
-    // Debug: log the result
     console.log('=== get_request result ===');
     console.log('result:', JSON.stringify(result, (_, v) => typeof v === 'bigint' ? v.toString() : v));
     
     if (result && (result as any).requestSettings) {
       const requestSettings = (result as any).requestSettings;
-      console.log('requestSettings:', JSON.stringify(requestSettings, (_, v) => typeof v === 'bigint' ? v.toString() : v));
-      console.log('requestSettings.bond:', requestSettings.bond);
-      
       const bond = parseU256(requestSettings.bond);
       console.log('parsed bond:', bond.toString());
       
@@ -167,7 +151,7 @@ async function fetchRequestsFromEvents(
     const parsedEvents = parseContractEvents(abi, rawEvents);
     console.log(`Parsed ${parsedEvents.length} events for ${oracleType}`, parsedEvents);
     
-    // Group events by request
+    // Group events by requestId (now available in RequestPrice event)
     const requestMap = new Map<string, {
       request?: any;
       propose?: any;
@@ -175,6 +159,7 @@ async function fetchRequestsFromEvents(
       settle?: any;
       txHash: string;
       proposeTxHash?: string;
+      requestId?: string;
     }>();
     
     for (let i = 0; i < parsedEvents.length; i++) {
@@ -185,7 +170,9 @@ async function fetchRequestsFromEvents(
       for (const [eventType, eventName] of Object.entries(eventConfig)) {
         if (event[eventName]) {
           const data = event[eventName];
-          const key = getRequestKey(
+          // Use requestId from event if available, otherwise fallback to composite key
+          const requestId = data.requestId ? normalizeFelt(data.requestId) : null;
+          const key = requestId || getRequestKey(
             normalizeAddress(data.requester) || '',
             normalizeFelt(data.identifier) || '',
             normalizeFelt(data.timestamp) || '',
@@ -197,6 +184,7 @@ async function fetchRequestsFromEvents(
           if (eventType === 'RequestPrice') {
             existing.request = data;
             existing.txHash = txHash;
+            existing.requestId = requestId || undefined;
           } else if (eventType === 'ProposePrice') {
             existing.propose = data;
             existing.proposeTxHash = txHash;
@@ -226,26 +214,13 @@ async function fetchRequestsFromEvents(
       providerOrAccount: provider,
     });
     
-    // Prepare all contract calls in parallel for bond fetching
-    const requestEntries = Array.from(requestMap.entries()).filter(([, data]) => data.request);
+    // Prepare all contract calls in parallel for bond fetching using requestId
+    const requestEntries = Array.from(requestMap.entries()).filter(([, data]) => data.request && data.requestId);
     
     const bondResults = await Promise.all(
       requestEntries.map(async ([, data]) => {
-        const req = data.request;
-        const requester = normalizeAddress(req.requester) || '';
-        const identifierRaw = normalizeFelt(req.identifier);
-        // Convert ancillaryData to ByteArray using starknet.js
-        const ancillaryDataStr = parseByteArray(req.ancillaryData);
-        const ancillaryDataByteArray = byteArray.byteArrayFromString(ancillaryDataStr);
-        const contractData = await fetchRequestFromContract(
-          contract,
-          requester,
-          identifierRaw,
-          req.timestamp,
-          ancillaryDataByteArray
-        );
-        
-        return contractData;
+        if (!data.requestId) return null;
+        return fetchRequestFromContract(contract, data.requestId);
       })
     );
     
