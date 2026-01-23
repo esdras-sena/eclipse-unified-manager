@@ -422,8 +422,20 @@
         "name": "propose_price",
         "inputs": [
           {
-            "name": "requestId",
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
             "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
           },
           {
             "name": "proposedPrice",
@@ -581,8 +593,20 @@
         "name": "get_state",
         "inputs": [
           {
-            "name": "requestId",
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
             "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
           }
         ],
         "outputs": [
@@ -708,11 +732,6 @@
     "name": "eclipse_oracle::eclipse_oracle::EclipseOracle::ProposePrice",
     "kind": "struct",
     "members": [
-      {
-        "name": "requestId",
-        "type": "core::felt252",
-        "kind": "data"
-      },
       {
         "name": "requester",
         "type": "core::starknet::contract_address::ContractAddress",
