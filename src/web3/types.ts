@@ -104,6 +104,7 @@ export interface CombinedQuery {
   reward?: string;
   // Request-type fields
   identifier?: string;
+  identifierRaw?: string; // Raw felt252 hex for contract calls
   requester?: string;
   requesterTxHash?: string;
   proposer?: string;
