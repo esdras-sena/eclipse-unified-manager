@@ -170,8 +170,17 @@ async function fetchRequestsFromEvents(
       for (const [eventType, eventName] of Object.entries(eventConfig)) {
         if (event[eventName]) {
           const data = event[eventName];
+          
+          // Debug: log parsed event data to see requestId format
+          console.log(`=== Parsed ${eventType} event ===`);
+          console.log('Raw data keys:', Object.keys(data));
+          console.log('data.requestId raw:', data.requestId);
+          console.log('data.requestId type:', typeof data.requestId);
+          
           // Use requestId from event if available, otherwise fallback to composite key
           const requestId = data.requestId ? normalizeFelt(data.requestId) : null;
+          console.log('Normalized requestId:', requestId);
+          
           const key = requestId || getRequestKey(
             normalizeAddress(data.requester) || '',
             normalizeFelt(data.identifier) || '',
@@ -185,6 +194,7 @@ async function fetchRequestsFromEvents(
             existing.request = data;
             existing.txHash = txHash;
             existing.requestId = requestId || undefined;
+            console.log('Stored requestId in map:', existing.requestId);
           } else if (eventType === 'ProposePrice') {
             existing.propose = data;
             existing.proposeTxHash = txHash;
