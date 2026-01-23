@@ -1,8 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useAccount } from '@starknet-react/core';
-import { byteArray, Contract, RpcProvider } from 'starknet';
+import { byteArray, Contract } from 'starknet';
 import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS } from '../constants';
-import { getNodeUrl } from '../utils/network';
 import { OracleType } from '@/components/QueryDetailPanel';
 
 import ooAbi from '../abis/ooAbi.json';
@@ -72,37 +71,18 @@ export function useProposePrice() {
 
     try {
       const contractAddress = getContractAddress(params.oracleType);
-
       const abi = getContractAbi(params.oracleType) as any;
-      const provider = new RpcProvider({ nodeUrl: getNodeUrl() });
 
-      // Create ByteArray from the RAW decoded ancillaryData string (Voyager-style)
+      // Create ByteArray from the RAW decoded ancillaryData string
       const ancillaryDataByteArray = byteArray.byteArrayFromString(params.ancillaryDataString);
 
-      // Preflight: verify encoding matches on-chain by calling get_state.
-      // Requested == 1 per ABI enum ordering.
-      const readContract = new Contract({ abi, address: contractAddress, providerOrAccount: provider });
-      const state = await readContract.callStatic.get_state(
-        params.requester,
-        params.identifier,
-        params.timestamp,
-        ancillaryDataByteArray
-      );
-
-      const stateVariant =
-        state && typeof state === 'object' && typeof (state as any).activeVariant === 'function'
-          ? (state as any).activeVariant()
-          : state && typeof state === 'object'
-            ? Object.keys(state as any)[0]
-            : String(state);
-
-      console.log('=== get_state preflight ===');
-      console.log('state raw:', state);
-      console.log('state variant:', stateVariant);
-
-      if (String(stateVariant) !== 'Requested') {
-        throw new Error(`get_state returned ${String(stateVariant)} (expected Requested). Not proposing.`);
-      }
+      console.log('=== propose_price params ===');
+      console.log('requester:', params.requester);
+      console.log('identifier:', params.identifier);
+      console.log('timestamp:', params.timestamp);
+      console.log('ancillaryDataString:', params.ancillaryDataString);
+      console.log('ancillaryDataByteArray:', ancillaryDataByteArray);
+      console.log('proposedPrice:', params.proposedPrice.toString());
 
       // Build the call using ABI-aware population (avoids manual ByteArray/i256 ordering bugs)
       const writeContract = new Contract({ abi, address: contractAddress, providerOrAccount: account });
