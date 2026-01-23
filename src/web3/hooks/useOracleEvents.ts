@@ -38,28 +38,19 @@ async function fetchRequestFromContract(
   requestId: string
 ): Promise<{ bond: bigint; eventBased: boolean } | null> {
   try {
-    console.log('=== get_request by requestId ===');
-    console.log('requestId:', requestId);
-    
     const result = await contract.callStatic.get_request(requestId);
-
-    console.log('=== get_request result ===');
-    console.log('result:', JSON.stringify(result, (_, v) => typeof v === 'bigint' ? v.toString() : v));
     
     if (result && (result as any).requestSettings) {
       const requestSettings = (result as any).requestSettings;
       const bond = parseU256(requestSettings.bond);
-      console.log('parsed bond:', bond.toString());
       
       const eb = requestSettings.eventBased;
       const eventBased = eb === true || eb === 1 || eb === 1n;
       return { bond, eventBased };
     }
 
-    console.log('No requestSettings found in result');
     return null;
   } catch (error) {
-    console.error('Error fetching request from contract:', error);
     return null;
   }
 }
@@ -143,13 +134,11 @@ async function fetchRequestsFromEvents(
   try {
     // Fetch all events
     const { events: rawEvents, txHashes } = await fetchContractEvents(contractAddr, deployBlock);
-    console.log(`Fetched ${rawEvents.length} raw events for ${oracleType}`);
     
     if (rawEvents.length === 0) return [];
     
     // Parse events using local ABI
     const parsedEvents = parseContractEvents(abi, rawEvents);
-    console.log(`Parsed ${parsedEvents.length} events for ${oracleType}`, parsedEvents);
     
     // Group events by requestId (now available in RequestPrice event)
     const requestMap = new Map<string, {
@@ -171,15 +160,8 @@ async function fetchRequestsFromEvents(
         if (event[eventName]) {
           const data = event[eventName];
           
-          // Debug: log parsed event data to see requestId format
-          console.log(`=== Parsed ${eventType} event ===`);
-          console.log('Raw data keys:', Object.keys(data));
-          console.log('data.requestId raw:', data.requestId);
-          console.log('data.requestId type:', typeof data.requestId);
-          
           // Use requestId from event if available, otherwise fallback to composite key
           const requestId = data.requestId ? normalizeFelt(data.requestId) : null;
-          console.log('Normalized requestId:', requestId);
           
           const key = requestId || getRequestKey(
             normalizeAddress(data.requester) || '',
@@ -194,7 +176,6 @@ async function fetchRequestsFromEvents(
             existing.request = data;
             existing.txHash = txHash;
             existing.requestId = requestId || undefined;
-            console.log('Stored requestId in map:', existing.requestId);
           } else if (eventType === 'ProposePrice') {
             existing.propose = data;
             existing.proposeTxHash = txHash;
@@ -210,7 +191,7 @@ async function fetchRequestsFromEvents(
       }
     }
     
-    console.log(`Found ${requestMap.size} unique requests for ${oracleType}`);
+    
     
     // Convert to CombinedQuery - fetch bond from contract for each request
     const queries: CombinedQuery[] = [];
@@ -366,13 +347,11 @@ async function fetchAssertionsFromEvents(): Promise<CombinedQuery[]> {
       OPTIMISTIC_ORACLE_ASSERTER_ADDRESS,
       deployBlock
     );
-    console.log(`Fetched ${rawEvents.length} raw events for asserter`);
     
     if (rawEvents.length === 0) return [];
     
     // Parse events using local ABI
     const parsedEvents = parseContractEvents(ooAsserterAbi as Abi, rawEvents);
-    console.log(`Parsed ${parsedEvents.length} events for asserter`, parsedEvents);
     
     // Group events by assertion_id
     const assertionMap = new Map<string, {
@@ -408,7 +387,7 @@ async function fetchAssertionsFromEvents(): Promise<CombinedQuery[]> {
       }
     }
     
-    console.log(`Found ${assertionMap.size} unique assertions`);
+    
     
     // Convert to CombinedQuery
     const queries: CombinedQuery[] = [];
@@ -522,11 +501,6 @@ export function useOracleEvents() {
         id: String(++idCounter),
       }));
       
-      console.log(`Fetched ${allQueries.length} total queries from events:`, {
-        oo: ooQueries.length,
-        ooManaged: ooManagedQueries.length,
-        ooAsserter: ooAsserterQueries.length,
-      });
 
       // Never fall back to mock/random data; if none found, show empty state.
       setQueries(allQueries);
