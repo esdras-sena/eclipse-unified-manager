@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useAccount } from '@starknet-react/core';
+import { byteArray, CallData } from 'starknet';
 import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS } from '../constants';
 import { OracleType } from '@/components/QueryDetailPanel';
 
@@ -8,64 +9,8 @@ interface ProposePriceParams {
   requester: string; // ContractAddress
   identifier: string; // felt252 hex (identifierRaw)
   timestamp: number; // u64
-  ancillaryDataString: string; // The decoded string to convert to hex
+  ancillaryDataString: string; // The decoded string to convert to ByteArray
   proposedPrice: bigint; // i256 value
-}
-
-// Convert a UTF-8 string to ByteArray calldata format
-// ByteArray = { data: Array<bytes31>, pending_word: felt252, pending_word_len: u32 }
-// Calldata format: [data_length, ...chunks, pending_word, pending_word_len]
-function serializeStringToByteArray(str: string): string[] {
-  const result: string[] = [];
-  const bytes: number[] = [];
-  
-  // Convert string to UTF-8 bytes
-  for (let i = 0; i < str.length; i++) {
-    const code = str.charCodeAt(i);
-    if (code < 0x80) {
-      bytes.push(code);
-    } else if (code < 0x800) {
-      bytes.push(0xc0 | (code >> 6));
-      bytes.push(0x80 | (code & 0x3f));
-    } else {
-      bytes.push(0xe0 | (code >> 12));
-      bytes.push(0x80 | ((code >> 6) & 0x3f));
-      bytes.push(0x80 | (code & 0x3f));
-    }
-  }
-  
-  // Split into 31-byte chunks
-  const chunkSize = 31;
-  const fullChunks: string[] = [];
-  let i = 0;
-  
-  while (i + chunkSize <= bytes.length) {
-    let hex = '0x';
-    for (let j = 0; j < chunkSize; j++) {
-      hex += bytes[i + j].toString(16).padStart(2, '0');
-    }
-    fullChunks.push(hex);
-    i += chunkSize;
-  }
-  
-  // Remaining bytes become pending_word
-  let pendingWord = '0x0';
-  const pendingLen = bytes.length - i;
-  
-  if (pendingLen > 0) {
-    pendingWord = '0x';
-    for (let j = i; j < bytes.length; j++) {
-      pendingWord += bytes[j].toString(16).padStart(2, '0');
-    }
-  }
-  
-  // Build calldata: [data_length, ...chunks, pending_word, pending_word_len]
-  result.push(String(fullChunks.length));
-  result.push(...fullChunks);
-  result.push(pendingWord);
-  result.push(String(pendingLen));
-  
-  return result;
 }
 
 // Serialize i256 for Starknet calldata
@@ -113,21 +58,20 @@ export function useProposePrice() {
       const contractAddress = getContractAddress(params.oracleType);
 
       // Build calldata for propose_price(requester, identifier, timestamp, ancillaryData, proposedPrice)
-      // Parameters:
-      // - requester: ContractAddress (felt252)
-      // - identifier: felt252
-      // - timestamp: u64
-      // - ancillaryData: ByteArray [data_len, ...chunks, pending_word, pending_word_len]
-      // - proposedPrice: i256 [signal, low, high]
+      // Use starknet.js byteArray.byteArrayFromString() and CallData.compile() for proper encoding
       
-      // Serialize ancillaryData string to ByteArray calldata
-      const ancillaryDataCalldata = serializeStringToByteArray(params.ancillaryDataString);
+      // Create ByteArray from string using starknet.js
+      const ancillaryDataByteArray = byteArray.byteArrayFromString(params.ancillaryDataString);
       
+      // Compile ByteArray to calldata format using starknet.js CallData.compile
+      const ancillaryDataCalldata = CallData.compile([ancillaryDataByteArray]);
+      
+      // Build full calldata
       const calldata: string[] = [
         params.requester,           // requester: ContractAddress
         params.identifier,          // identifier: felt252
         String(params.timestamp),   // timestamp: u64
-        ...ancillaryDataCalldata,   // ancillaryData: ByteArray
+        ...ancillaryDataCalldata,   // ancillaryData: ByteArray (properly compiled)
         ...serializeI256(params.proposedPrice),      // proposedPrice: i256
       ];
 
@@ -136,6 +80,7 @@ export function useProposePrice() {
       console.log('identifier:', params.identifier);
       console.log('timestamp:', params.timestamp);
       console.log('ancillaryDataString:', params.ancillaryDataString);
+      console.log('ancillaryDataByteArray:', ancillaryDataByteArray);
       console.log('ancillaryDataCalldata:', ancillaryDataCalldata);
       console.log('proposedPrice:', params.proposedPrice.toString());
       console.log('serialized calldata:', calldata);
