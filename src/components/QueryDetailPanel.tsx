@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { X, Info, Clock, FileText, ExternalLink, CheckCircle, AlertTriangle, ChevronDown, Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { X, Info, Clock, FileText, ExternalLink, CheckCircle, AlertTriangle, ChevronDown, Send, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import CopyButton from "./lib/CopyButton";
 import {
@@ -9,6 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useProposePrice } from "@/web3/hooks/useProposePrice";
+import { useAccount } from "@starknet-react/core";
+import { toast } from "sonner";
 
 export type OracleType = "optimistic-oracle" | "optimistic-oracle-managed" | "optimistic-oracle-asserter";
 
@@ -56,7 +60,10 @@ interface QueryDetailPanelProps {
 }
 
 const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProps) => {
+  const navigate = useNavigate();
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
+  const { address } = useAccount();
+  const { proposePrice, isPending, error: proposeError } = useProposePrice();
   
   // Lock body scroll when panel is open
   useEffect(() => {
@@ -101,6 +108,61 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
   };
 
   const isAsserterType = query.oracleType === "optimistic-oracle-asserter";
+
+  // Convert selected answer to bigint value for propose_price
+  const getProposedPriceValue = (answer: string): bigint => {
+    // YES_OR_NO_QUERY: true = 1e18, false = 0, indeterminate = 0.5e18
+    switch (answer) {
+      case "true":
+        return BigInt("1000000000000000000"); // 1e18
+      case "false":
+        return BigInt(0);
+      case "0.5":
+        return BigInt("500000000000000000"); // 0.5e18
+      default:
+        return BigInt(0);
+    }
+  };
+
+  const handleProposeAnswer = async () => {
+    if (!query || !selectedAnswer) return;
+    
+    if (!address) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    if (!query.requester || !query.identifier || !query.requestedTimeUnix) {
+      toast.error("Missing required query data for proposal");
+      return;
+    }
+
+    // Only support OO and OO Managed for proposals
+    if (query.oracleType === "optimistic-oracle-asserter") {
+      toast.error("Asserter oracle type uses assertions, not proposals");
+      return;
+    }
+
+    const proposedPrice = getProposedPriceValue(selectedAnswer);
+    
+    const txHash = await proposePrice({
+      oracleType: query.oracleType || "optimistic-oracle",
+      requester: query.requester,
+      identifier: query.identifier,
+      timestamp: query.requestedTimeUnix,
+      ancillaryData: query.title, // The ancillary data is the query title
+      proposedPrice,
+    });
+
+    if (txHash) {
+      toast.success("Proposal submitted successfully!");
+      onClose();
+      // Navigate to Verify page after successful proposal
+      navigate("/");
+    } else if (proposeError) {
+      toast.error(`Proposal failed: ${proposeError.message}`);
+    }
+  };
 
   return (
     <>
@@ -157,25 +219,30 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                     <SelectItem value="true">True (Yes)</SelectItem>
                     <SelectItem value="false">False (No)</SelectItem>
                     <SelectItem value="0.5">Indeterminate (0.5)</SelectItem>
-                    <SelectItem value="custom">Custom Value...</SelectItem>
                   </SelectContent>
                 </Select>
 
                 {/* Propose Button */}
                 <button
-                  disabled={!selectedAnswer}
+                  disabled={!selectedAnswer || isPending || !address}
                   className={`w-full py-3 px-4 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                    selectedAnswer
+                    selectedAnswer && !isPending && address
                       ? "bg-primary hover:bg-primary/90 text-primary-foreground"
                       : "bg-muted text-muted-foreground cursor-not-allowed"
                   }`}
-                  onClick={() => {
-                    // TODO: Connect wallet and propose logic
-                    console.log("Propose answer:", selectedAnswer, "for query:", query.id);
-                  }}
+                  onClick={handleProposeAnswer}
                 >
-                  <Send className="h-4 w-4" />
-                  Propose Answer
+                  {isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Proposing...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      {address ? "Propose Answer" : "Connect Wallet to Propose"}
+                    </>
+                  )}
                 </button>
 
                 {/* Bond Notice */}
