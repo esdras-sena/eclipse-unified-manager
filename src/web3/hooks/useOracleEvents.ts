@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { RpcProvider, events, CallData, createAbiParser, Abi } from 'starknet';
+import { RpcProvider, events, CallData, createAbiParser, Abi, Contract, byteArray as starknetByteArray } from 'starknet';
 import { getNodeUrl } from '../utils/network';
 import { 
   OPTIMISTIC_ORACLE_ADDRESS, 
@@ -29,6 +29,49 @@ import ooAsserterAbi from '../abis/ooAsserterAbi.json';
 
 function getProvider() {
   return new RpcProvider({ nodeUrl: getNodeUrl() });
+}
+
+// Fetch request details from contract to get bond from RequestSettings
+async function fetchRequestFromContract(
+  contractAddr: string,
+  abi: Abi,
+  requester: string,
+  identifier: string,
+  timestamp: number,
+  ancillaryData: string
+): Promise<{ bond: bigint; eventBased: boolean } | null> {
+  try {
+    const provider = getProvider();
+    const contract = new Contract({
+      abi: abi as any,
+      address: contractAddr,
+      providerOrAccount: provider,
+    });
+    
+    // Build ByteArray for ancillaryData
+    const ancillaryDataByteArray = starknetByteArray.byteArrayFromString(ancillaryData);
+    
+    const result = await contract.get_request(
+      requester,
+      identifier,
+      timestamp,
+      ancillaryDataByteArray
+    );
+    
+    // Result is a Request struct with requestSettings inside
+    if (result && result.requestSettings) {
+      const bond = parseU256(result.requestSettings.bond);
+      const eventBased = result.requestSettings.eventBased === true || 
+                         result.requestSettings.eventBased === 1n ||
+                         result.requestSettings.eventBased === 1;
+      return { bond, eventBased };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error fetching request from contract:', error);
+    return null;
+  }
 }
 
 // Event names from ABIs
@@ -165,13 +208,38 @@ async function fetchRequestsFromEvents(
     
     console.log(`Found ${requestMap.size} unique requests for ${oracleType}`);
     
-    // Convert to CombinedQuery
+    // Convert to CombinedQuery - fetch bond from contract for each request
     const queries: CombinedQuery[] = [];
     let index = 0;
     
-    for (const [, data] of requestMap.entries()) {
+    // Prepare all contract calls in parallel for bond fetching
+    const requestEntries = Array.from(requestMap.entries()).filter(([, data]) => data.request);
+    
+    const bondResults = await Promise.all(
+      requestEntries.map(async ([, data]) => {
+        const req = data.request;
+        const requester = normalizeAddress(req.requester) || '';
+        const identifierRaw = normalizeFelt(req.identifier);
+        const timestamp = Number(req.timestamp || 0);
+        const ancillaryDataStr = parseByteArray(req.ancillaryData);
+        
+        const contractData = await fetchRequestFromContract(
+          contractAddr,
+          abi,
+          requester,
+          identifierRaw,
+          timestamp,
+          ancillaryDataStr
+        );
+        
+        return contractData;
+      })
+    );
+    
+    for (let i = 0; i < requestEntries.length; i++) {
+      const [, data] = requestEntries[i];
       const req = data.request;
-      if (!req) continue;
+      const contractData = bondResults[i];
       
       const isSettled = !!data.settle;
       const isDisputed = !!data.dispute && !isSettled;
@@ -189,9 +257,9 @@ async function fetchRequestsFromEvents(
       }
       
       const reward = parseU256(req.reward);
-      const finalFee = parseU256(req.finalFee);
-      // Bond is inside requestSettings struct
-      const bond = req.requestSettings ? parseU256(req.requestSettings.bond) : BigInt(0);
+      // Bond from contract's get_request (RequestSettings.bond)
+      const bond = contractData?.bond ?? BigInt(0);
+      const eventBased = contractData?.eventBased ?? false;
       const proposedPrice = data.propose ? parseI256(data.propose.proposedPrice) : BigInt(0);
       const settledPrice = data.settle ? parseI256(data.settle.price) : BigInt(0);
       
@@ -249,7 +317,7 @@ async function fetchRequestsFromEvents(
         oracleType,
         oracleAddress: contractAddr,
         reward: formatBigInt(reward),
-        eventBased: false,
+        eventBased,
         identifier,
         identifierRaw,
         requester: normalizeAddress(req.requester),
