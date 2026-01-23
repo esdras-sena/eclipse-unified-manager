@@ -190,6 +190,8 @@ async function fetchRequestsFromEvents(
       
       const reward = parseU256(req.reward);
       const finalFee = parseU256(req.finalFee);
+      // Bond is inside requestSettings struct
+      const bond = req.requestSettings ? parseU256(req.requestSettings.bond) : BigInt(0);
       const proposedPrice = data.propose ? parseI256(data.propose.proposedPrice) : BigInt(0);
       const settledPrice = data.settle ? parseI256(data.settle.price) : BigInt(0);
       
@@ -238,7 +240,7 @@ async function fetchRequestsFromEvents(
         title,
         subtitle: formatTimestamp(requestTimestamp),
         proposal: proposalDisplay,
-        bond: formatBigInt(finalFee),
+        bond: formatBigInt(bond),
         status,
         timeLeft: expirationTime > 0 && !isSettled ? calculateTimeLeft(expirationTime) : undefined,
         transactionHash: data.txHash,
