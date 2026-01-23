@@ -36,6 +36,8 @@ const Propose = () => {
       requesterTxHash: q.requesterTxHash,
       requestedTime: q.requestedTime,
       requestedTimeUnix: q.requestedTimeUnix,
+      requestTimestamp: q.timestamp, // Unix timestamp for contract calls
+      ancillaryDataRaw: q.ancillaryDataRaw, // Raw ByteArray for contract calls
       oracleAddress: q.oracleAddress,
       asserter: q.asserter,
       asserterTxHash: q.asserterTxHash,
