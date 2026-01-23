@@ -37,7 +37,7 @@ const Propose = () => {
       requestedTime: q.requestedTime,
       requestedTimeUnix: q.requestedTimeUnix,
       requestTimestamp: q.timestamp, // Unix timestamp for contract calls
-      ancillaryDataString: q.title, // Decoded string for contract calls (title is derived from ancillaryData)
+      ancillaryDataString: q.ancillaryDataString || q.title, // Use raw ancillaryData string (not parsed title)
       oracleAddress: q.oracleAddress,
       asserter: q.asserter,
       asserterTxHash: q.asserterTxHash,

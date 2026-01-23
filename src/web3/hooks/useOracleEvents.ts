@@ -341,6 +341,8 @@ async function fetchRequestsFromEvents(
         currency: normalizeAddress(req.currency),
         result: resultDisplay,
         timestamp: requestTimestamp, // Store raw timestamp for contract calls
+        // IMPORTANT: keep the exact decoded ancillary data string (before any parsing into title/description)
+        ancillaryDataString: ancillaryDataStr,
         ancillaryDataRaw: rawAncillaryData, // Store raw ByteArray for contract calls
       });
       
