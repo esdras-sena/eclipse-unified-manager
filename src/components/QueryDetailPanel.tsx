@@ -421,7 +421,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                   <CopyButton
                     copyText={query.identifier}
                     buttonText={query.identifier}
-                    className="text-sm text-primary hover:underline block truncate"
+                    className="text-sm text-primary hover:underline block break-all"
                   />
                 </div>
               )}
@@ -435,7 +435,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                   <CopyButton
                     copyText={query.oracleAddress}
                     buttonText={query.oracleAddress}
-                    className="text-sm text-primary hover:underline block truncate"
+                    className="text-sm text-primary hover:underline block break-all"
                   />
                 </div>
               )}
@@ -447,7 +447,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                   <CopyButton
                     copyText={query.requester}
                     buttonText={query.requester}
-                    className="text-sm text-primary hover:underline block truncate"
+                    className="text-sm text-primary hover:underline block break-all"
                   />
                 </div>
               )}
@@ -460,10 +460,10 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                     href={`https://sepolia.starkscan.co/tx/${query.requesterTxHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
+                    className="text-sm text-primary hover:underline flex items-start gap-1 break-all"
                   >
-                    {query.requesterTxHash}
-                    <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                    <span className="break-all">{query.requesterTxHash}</span>
+                    <ExternalLink className="h-3 w-3 flex-shrink-0 mt-1" />
                   </a>
                 </div>
               )}
@@ -475,7 +475,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                   <CopyButton
                     copyText={query.proposer}
                     buttonText={query.proposer}
-                    className="text-sm text-primary hover:underline block truncate"
+                    className="text-sm text-primary hover:underline block break-all"
                   />
                 </div>
               )}
@@ -488,10 +488,10 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                     href={`https://sepolia.starkscan.co/tx/${query.proposerTxHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
+                    className="text-sm text-primary hover:underline flex items-start gap-1 break-all"
                   >
-                    {query.proposerTxHash}
-                    <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                    <span className="break-all">{query.proposerTxHash}</span>
+                    <ExternalLink className="h-3 w-3 flex-shrink-0 mt-1" />
                   </a>
                 </div>
               )}
@@ -503,7 +503,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                   <CopyButton
                     copyText={query.asserter}
                     buttonText={query.asserter}
-                    className="text-sm text-primary hover:underline block truncate"
+                    className="text-sm text-primary hover:underline block break-all"
                   />
                 </div>
               )}
@@ -516,10 +516,10 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                     href={`https://sepolia.starkscan.co/tx/${query.asserterTxHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
+                    className="text-sm text-primary hover:underline flex items-start gap-1 break-all"
                   >
-                    {query.asserterTxHash}
-                    <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                    <span className="break-all">{query.asserterTxHash}</span>
+                    <ExternalLink className="h-3 w-3 flex-shrink-0 mt-1" />
                   </a>
                 </div>
               )}
@@ -531,7 +531,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                   <CopyButton
                     copyText={query.caller}
                     buttonText={query.caller}
-                    className="text-sm text-primary hover:underline block truncate"
+                    className="text-sm text-primary hover:underline block break-all"
                   />
                 </div>
               )}
@@ -545,7 +545,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                   <CopyButton
                     copyText={query.escalationManager}
                     buttonText={query.escalationManager}
-                    className="text-sm text-primary hover:underline block truncate"
+                    className="text-sm text-primary hover:underline block break-all"
                   />
                 </div>
               )}
@@ -559,7 +559,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                   <CopyButton
                     copyText={query.callbackRecipient}
                     buttonText={query.callbackRecipient}
-                    className="text-sm text-primary hover:underline block truncate"
+                    className="text-sm text-primary hover:underline block break-all"
                   />
                 </div>
               )}
