@@ -26,6 +26,8 @@ interface QueryDetailPanelProps {
     subtitle: string;
     proposal: string;
     bond: string;
+    bondRaw?: bigint; // Raw bond value for contract calls
+    finalFee?: bigint; // Final fee for contract calls
     bondToken?: string;
     status: "active" | "ended" | "disputed";
     timeLeft?: string;
@@ -165,7 +167,8 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
       timestamp: query.timestamp,
       ancillaryDataString: query.ancillaryDataString || query.title || "", // Use the decoded string
       proposedPrice,
-      bond: typeof query.bond === 'bigint' ? query.bond : BigInt(query.bond || 0), // Pass bond for ERC20 approval
+      bond: query.bondRaw || BigInt(query.bond || 0),
+      finalFee: query.finalFee || 0n,
     });
 
     if (txHash) {

@@ -36,17 +36,18 @@ function getProvider() {
 async function fetchRequestFromContract(
   contract: Contract,
   requestId: string
-): Promise<{ bond: bigint; eventBased: boolean } | null> {
+): Promise<{ bond: bigint; eventBased: boolean; finalFee: bigint } | null> {
   try {
     const result = await contract.callStatic.get_request(requestId);
     
     if (result && (result as any).requestSettings) {
       const requestSettings = (result as any).requestSettings;
       const bond = parseU256(requestSettings.bond);
+      const finalFee = parseU256((result as any).finalFee);
       
       const eb = requestSettings.eventBased;
       const eventBased = eb === true || eb === 1 || eb === 1n;
-      return { bond, eventBased };
+      return { bond, eventBased, finalFee };
     }
 
     return null;
@@ -236,8 +237,9 @@ async function fetchRequestsFromEvents(
       }
       
       const reward = parseU256(req.reward);
-      // Bond from contract's get_request (RequestSettings.bond)
+      // Bond and finalFee from contract's get_request
       const bond = contractData?.bond ?? BigInt(0);
+      const finalFee = contractData?.finalFee ?? BigInt(0);
       const eventBased = contractData?.eventBased ?? false;
       const proposedPrice = data.propose ? parseI256(data.propose.proposedPrice) : BigInt(0);
       const settledPrice = data.settle ? parseI256(data.settle.price) : BigInt(0);
@@ -299,6 +301,8 @@ async function fetchRequestsFromEvents(
         subtitle: formatTimestamp(requestTimestamp),
         proposal: proposalDisplay,
         bond: formatBigInt(bond),
+        bondRaw: bond, // Raw bigint for contract calls
+        finalFee, // Raw bigint for contract calls
         status,
         timeLeft: expirationTime > 0 && !isSettled ? calculateTimeLeft(expirationTime) : undefined,
         transactionHash: data.txHash,
