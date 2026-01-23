@@ -24,6 +24,8 @@ const Propose = () => {
       type: q.eventBased ? "Event-based" : "Standard",
       oracleType: q.oracleType,
       bond: q.bond,
+      bondRaw: q.bondRaw,
+      finalFee: q.finalFee,
       reward: q.reward || "0",
       transactionHash: q.transactionHash,
       eventIndex: q.eventIndex,

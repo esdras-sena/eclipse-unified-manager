@@ -11,6 +11,8 @@ export interface ProposeQuery {
   type: string;
   oracleType: OracleType;
   bond: string;
+  bondRaw?: bigint; // Raw bond value (base units) for approve/propose
+  finalFee?: bigint; // Raw final fee (base units) for approve/propose
   reward: string;
   // Extended fields for detail panel
   transactionHash?: string;
@@ -80,6 +82,8 @@ const ProposeQueryTable = ({ queries }: ProposeQueryTableProps) => {
       subtitle: query.timestamp,
       proposal: "—",
       bond: query.bond,
+      bondRaw: query.bondRaw,
+      finalFee: query.finalFee,
       status: "active" as const,
       oracleType: query.oracleType,
       eventBased: query.eventBased,
