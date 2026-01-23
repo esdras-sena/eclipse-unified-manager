@@ -118,6 +118,7 @@ export interface CombinedQuery {
   proposer?: string;
   proposerTxHash?: string;
   timestamp?: number; // Unix timestamp for contract calls
+  ancillaryDataString?: string; // Exact decoded ancillaryData string (source of truth for contract calls)
   ancillaryDataRaw?: RawByteArray; // Raw ByteArray for contract calls
   // Asserter-type fields
   asserter?: string;
