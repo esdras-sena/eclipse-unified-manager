@@ -55,10 +55,11 @@ export function useProposePrice() {
 
       // Call propose_price function
       // identifier is already a raw felt252 hex value
+      // timestamp is u64, not u256
       const calldata = CallData.compile({
         requester: params.requester,
         identifier: params.identifierRaw,
-        timestamp: cairo.uint256(params.timestamp),
+        timestamp: params.timestamp,
         ancillaryData: ancillaryDataByteArray,
         proposedPrice: i256Value,
       });
