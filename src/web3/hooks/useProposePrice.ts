@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useAccount } from '@starknet-react/core';
-import { byteArray, Contract } from 'starknet';
+import { Contract } from 'starknet';
 import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS } from '../constants';
 import { OracleType } from '@/components/QueryDetailPanel';
 
@@ -14,6 +14,14 @@ interface ProposePriceParams {
   timestamp: number; // u64
   ancillaryDataString: string; // The decoded string to convert to ByteArray
   proposedPrice: bigint; // i256 value
+}
+
+function utf8ToHex(str: string): string {
+  // Use standard UTF-8 encoding (browser-safe)
+  const bytes = new TextEncoder().encode(str);
+  let hex = '0x';
+  for (const b of bytes) hex += b.toString(16).padStart(2, '0');
+  return hex;
 }
 
 // Build Cairo i256 struct: { signal: u8, value: u256 { low, high } }
@@ -73,15 +81,16 @@ export function useProposePrice() {
       const contractAddress = getContractAddress(params.oracleType);
       const abi = getContractAbi(params.oracleType) as any;
 
-      // Create ByteArray from the RAW decoded ancillaryData string
-      const ancillaryDataByteArray = byteArray.byteArrayFromString(params.ancillaryDataString);
+      // Voyager-style: pass ancillary as a HEX string; starknet.js will recognize 0x.. and
+      // encode it into Cairo ByteArray internally.
+      const ancillaryDataHex = utf8ToHex(params.ancillaryDataString);
 
       console.log('=== propose_price params ===');
       console.log('requester:', params.requester);
       console.log('identifier:', params.identifier);
       console.log('timestamp:', params.timestamp);
       console.log('ancillaryDataString:', params.ancillaryDataString);
-      console.log('ancillaryDataByteArray:', ancillaryDataByteArray);
+      console.log('ancillaryDataHex:', ancillaryDataHex);
       console.log('proposedPrice:', params.proposedPrice.toString());
 
       // Build the call using ABI-aware population (avoids manual ByteArray/i256 ordering bugs)
@@ -91,7 +100,7 @@ export function useProposePrice() {
         params.requester,
         params.identifier,
         params.timestamp,
-        ancillaryDataByteArray,
+        ancillaryDataHex,
         proposedPriceI256
       );
 
