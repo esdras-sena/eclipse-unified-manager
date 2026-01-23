@@ -38,7 +38,8 @@ async function fetchRequestFromContract(
   requestId: string
 ): Promise<{ bond: bigint; eventBased: boolean; finalFee: bigint } | null> {
   try {
-    const result = await contract.callStatic.get_request(requestId);
+    // Match starknet.js "call" pattern (same as tests)
+    const result = await contract.call('get_request', [requestId]);
     
     if (result && (result as any).requestSettings) {
       const requestSettings = (result as any).requestSettings;
@@ -58,23 +59,29 @@ async function fetchRequestFromContract(
 
 // Parse the State enum from get_state result
 function parseContractState(stateResult: any): ContractState {
-  // The result is an object with the active variant as a key
-  // e.g., { Requested: {} } or { Proposed: {} } etc.
-  if (stateResult && typeof stateResult === 'object') {
-    const keys = Object.keys(stateResult);
-    if (keys.length > 0) {
-      const variant = keys[0];
-      if (['Requested', 'Proposed', 'Expired', 'Disputed', 'Resolved', 'Settled'].includes(variant)) {
-        return variant as ContractState;
-      }
-    }
-    // Handle activeVariant pattern from starknet.js
-    if (stateResult.activeVariant) {
-      return stateResult.activeVariant as ContractState;
+  const allowed: ContractState[] = ['Requested', 'Proposed', 'Expired', 'Disputed', 'Resolved', 'Settled'];
+  const isAllowed = (v: string): v is ContractState => (allowed as string[]).includes(v);
+
+  if (!stateResult) return 'Requested';
+
+  // starknet.js CairoCustomEnum: activeVariant() => "Requested" | ...
+  if (typeof stateResult === 'object' && typeof (stateResult as any).activeVariant === 'function') {
+    try {
+      const v = String((stateResult as any).activeVariant());
+      if (isAllowed(v)) return v;
+    } catch {
+      // fall through
     }
   }
-  // Default fallback
-  return 'Requested';
+
+  // sometimes decoded enums come as { VariantName: ... }
+  if (typeof stateResult === 'object') {
+    const keys = Object.keys(stateResult as any);
+    if (keys.length === 1 && isAllowed(keys[0])) return keys[0] as ContractState;
+  }
+
+  const s = String(stateResult);
+  return isAllowed(s) ? (s as ContractState) : 'Requested';
 }
 
 // Convert UTF-8 string to hex for ByteArray encoding
@@ -96,16 +103,16 @@ async function fetchRequestState(
   try {
     // Convert the decoded ancillary data string back to hex for the contract call
     const ancillaryDataHex = utf8ToHex(ancillaryDataString);
-    
-    const result = await contract.callStatic.get_state(
+
+    // Match the working vitest approach exactly
+    const result = await contract.call('get_state', [
       requester,
       identifier,
       timestamp,
-      ancillaryDataHex
-    );
+      ancillaryDataHex,
+    ]);
     
     const state = parseContractState(result);
-    console.log(`[get_state] requester=${requester.slice(0,10)}... state=${state}`, result);
     return state;
   } catch (error) {
     console.error('Error fetching request state:', error);
