@@ -193,7 +193,8 @@ async function fetchRequestsFromEvents(
       const proposedPrice = data.propose ? parseI256(data.propose.proposedPrice) : BigInt(0);
       const settledPrice = data.settle ? parseI256(data.settle.price) : BigInt(0);
       
-      const identifier = felt252ToString(req.identifier);
+      const identifierRaw = normalizeFelt(req.identifier); // Raw hex for contract calls
+      const identifier = felt252ToString(req.identifier); // Decoded string for display
       const requestTimestamp = Number(req.timestamp || 0);
       const ancillaryDataStr = parseByteArray(req.ancillaryData);
       
@@ -248,6 +249,7 @@ async function fetchRequestsFromEvents(
         reward: formatBigInt(reward),
         eventBased: false,
         identifier,
+        identifierRaw,
         requester: normalizeAddress(req.requester),
         requesterTxHash: data.txHash,
         proposer: normalizeAddress(data.propose?.proposer),

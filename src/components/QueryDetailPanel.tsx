@@ -41,6 +41,7 @@ interface QueryDetailPanelProps {
     settledTimeUnix?: string;
     // Request-type specific fields (Optimistic Oracle, OO Managed)
     identifier?: string;
+    identifierRaw?: string; // Raw felt252 hex for contract calls
     requester?: string;
     requesterTxHash?: string;
     proposer?: string;
@@ -132,8 +133,9 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
       return;
     }
 
-    if (!query.requester || !query.identifier || !query.requestedTimeUnix) {
+    if (!query.requester || !query.identifierRaw || !query.requestedTimeUnix) {
       toast.error("Missing required query data for proposal");
+      console.error("Missing data:", { requester: query.requester, identifierRaw: query.identifierRaw, requestedTimeUnix: query.requestedTimeUnix });
       return;
     }
 
@@ -148,7 +150,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
     const txHash = await proposePrice({
       oracleType: query.oracleType || "optimistic-oracle",
       requester: query.requester,
-      identifier: query.identifier,
+      identifierRaw: query.identifierRaw,
       timestamp: query.requestedTimeUnix,
       ancillaryData: query.title, // The ancillary data is the query title
       proposedPrice,

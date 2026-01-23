@@ -30,6 +30,7 @@ const Propose = () => {
       description: q.description,
       eventBased: q.eventBased,
       identifier: q.identifier,
+      identifierRaw: q.identifierRaw,
       requester: q.requester,
       requesterTxHash: q.requesterTxHash,
       requestedTime: q.requestedTime,

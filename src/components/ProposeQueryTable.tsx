@@ -20,6 +20,7 @@ export interface ProposeQuery {
   requestedTimeUnix?: string;
   // Request-type fields
   identifier?: string;
+  identifierRaw?: string; // Raw felt252 hex for contract calls
   requester?: string;
   requesterTxHash?: string;
   // Asserter-type fields
@@ -83,6 +84,7 @@ const ProposeQueryTable = ({ queries }: ProposeQueryTableProps) => {
       requestedTime: query.requestedTime || query.timestamp,
       requestedTimeUnix: query.requestedTimeUnix,
       identifier: query.identifier,
+      identifierRaw: query.identifierRaw,
       requester: query.requester,
       requesterTxHash: query.requesterTxHash,
       asserter: query.asserter,
