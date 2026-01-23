@@ -48,6 +48,13 @@ export function useProposePrice() {
       };
 
       // Call propose_price function with requestId and proposedPrice
+      // Pass requestId exactly as received from the event (already a felt252 hex)
+      console.log('propose_price params:', {
+        requestId: params.requestId,
+        proposedPrice: params.proposedPrice.toString(),
+        i256Value,
+      });
+      
       const calldata = CallData.compile({
         requestId: params.requestId,
         proposedPrice: i256Value,
