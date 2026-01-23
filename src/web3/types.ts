@@ -85,6 +85,13 @@ export interface AssertionSettled {
   settleCaller: string;
 }
 
+// Raw ByteArray structure from Starknet events for contract calls
+export interface RawByteArray {
+  data: string[]; // Array of bytes31 felts
+  pending_word: string; // Last incomplete word
+  pending_word_len: number; // Length of pending word in bytes
+}
+
 // Combined query interface for UI
 export interface CombinedQuery {
   id: string;
@@ -110,6 +117,8 @@ export interface CombinedQuery {
   requesterTxHash?: string;
   proposer?: string;
   proposerTxHash?: string;
+  timestamp?: number; // Unix timestamp for contract calls
+  ancillaryDataRaw?: RawByteArray; // Raw ByteArray for contract calls
   // Asserter-type fields
   asserter?: string;
   asserterTxHash?: string;

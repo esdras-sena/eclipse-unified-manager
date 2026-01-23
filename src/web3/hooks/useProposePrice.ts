@@ -2,11 +2,50 @@ import { useCallback, useState } from 'react';
 import { useAccount } from '@starknet-react/core';
 import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS } from '../constants';
 import { OracleType } from '@/components/QueryDetailPanel';
+import { RawByteArray } from '../types';
 
 interface ProposePriceParams {
   oracleType: OracleType;
-  requestId: string; // The unique request identifier (felt252 hex)
-  proposedPrice: bigint; // The value (positive for YES_OR_NO_QUERY)
+  requester: string; // ContractAddress
+  identifier: string; // felt252 hex (identifierRaw)
+  timestamp: number; // u64
+  ancillaryData: RawByteArray; // ByteArray struct
+  proposedPrice: bigint; // i256 value
+}
+
+// Serialize ByteArray for Starknet calldata
+// Format: [data_length, ...data_chunks, pending_word, pending_word_len]
+function serializeByteArray(byteArray: RawByteArray): string[] {
+  const result: string[] = [];
+  
+  // Array length first
+  result.push(String(byteArray.data.length));
+  
+  // Then all data chunks (bytes31 felts)
+  for (const chunk of byteArray.data) {
+    result.push(chunk);
+  }
+  
+  // Then pending_word and pending_word_len
+  result.push(byteArray.pending_word);
+  result.push(String(byteArray.pending_word_len));
+  
+  return result;
+}
+
+// Serialize i256 for Starknet calldata
+// Format: [signal, low, high] where signal is 0 for positive, 1 for negative
+function serializeI256(value: bigint): string[] {
+  const signal = value >= 0n ? 0 : 1;
+  const magnitude = value >= 0n ? value : -value;
+  const low = magnitude & ((1n << 128n) - 1n);
+  const high = magnitude >> 128n;
+  
+  return [
+    String(signal),
+    low.toString(),
+    high.toString(),
+  ];
 }
 
 export function useProposePrice() {
@@ -38,30 +77,29 @@ export function useProposePrice() {
     try {
       const contractAddress = getContractAddress(params.oracleType);
 
-      // Build calldata manually for propose_price(requestId: felt252, proposedPrice: i256)
-      // i256 struct: { signal: u8, value: u256 { low: u128, high: u128 } }
-      // Total calldata: [requestId, signal, value_low, value_high]
+      // Build calldata for propose_price(requester, identifier, timestamp, ancillaryData, proposedPrice)
+      // Parameters:
+      // - requester: ContractAddress (felt252)
+      // - identifier: felt252
+      // - timestamp: u64
+      // - ancillaryData: ByteArray [data_len, ...data, pending_word, pending_word_len]
+      // - proposedPrice: i256 [signal, low, high]
       
-      const priceBigInt = params.proposedPrice;
-      const signal = priceBigInt >= 0n ? 0 : 1;
-      const magnitude = priceBigInt >= 0n ? priceBigInt : -priceBigInt;
-      const low = magnitude & ((1n << 128n) - 1n);
-      const high = magnitude >> 128n;
-
-      const calldata = [
-        params.requestId,           // requestId: felt252
-        String(signal),             // i256.signal: u8
-        low.toString(),             // i256.value.low: u128
-        high.toString(),            // i256.value.high: u128
+      const calldata: string[] = [
+        params.requester,           // requester: ContractAddress
+        params.identifier,          // identifier: felt252
+        String(params.timestamp),   // timestamp: u64
+        ...serializeByteArray(params.ancillaryData), // ancillaryData: ByteArray
+        ...serializeI256(params.proposedPrice),      // proposedPrice: i256
       ];
 
-      console.log('propose_price calldata:', {
-        requestId: params.requestId,
-        signal,
-        low: low.toString(),
-        high: high.toString(),
-        calldata,
-      });
+      console.log('=== propose_price calldata ===');
+      console.log('requester:', params.requester);
+      console.log('identifier:', params.identifier);
+      console.log('timestamp:', params.timestamp);
+      console.log('ancillaryData:', params.ancillaryData);
+      console.log('proposedPrice:', params.proposedPrice.toString());
+      console.log('serialized calldata:', calldata);
 
       const result = await account.execute({
         contractAddress,
