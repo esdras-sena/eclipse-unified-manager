@@ -52,42 +52,24 @@ describe("get_state ancillaryData encoding (debug)", () => {
       providerOrAccount: provider,
     });
 
-    // Build ByteArray exactly like useProposePrice does
+    // Build hex exactly like useProposePrice does
     const ancillaryDataHex = utf8ToHex(ancillaryDataString);
     
-    // Also try using starknet.js byteArray helper for comparison
-    const ancillaryByteArray = byteArray.byteArrayFromString(ancillaryDataString);
-
+    console.log("ancillaryDataString:", ancillaryDataString);
     console.log("ancillaryDataHex:", ancillaryDataHex);
-    console.log("ancillaryByteArray:", ancillaryByteArray);
 
-    // Test with hex string (same as useProposePrice)
-    const stateFromHex = await contract.call("get_state", [
+    // starknet.js v9 only accepts string for ByteArray - use the hex
+    const state = await contract.call("get_state", [
       requester,
       identifier,
       timestamp,
       ancillaryDataHex,
     ]);
 
-    // Test with byteArray struct
-    const stateFromByteArray = await contract.call("get_state", [
-      requester,
-      identifier,
-      timestamp,
-      ancillaryByteArray,
-    ]);
+    const variant = extractEnumVariant(state);
+    console.log("get_state variant:", variant);
 
-    const v1 = extractEnumVariant(stateFromHex);
-    const v2 = extractEnumVariant(stateFromByteArray);
-
-    console.log("get_state variant (from hex):", v1);
-    console.log("get_state variant (from byteArray):", v2);
-
-    // Both forms MUST resolve to the same on-chain request key
-    expect(v1).toBe(v2);
-
-    // Requested == 1 in the contract's enum ordering.
-    // If this fails, it means the request is not in Requested state OR the encoding doesn't match.
-    expect(v1).toBe("Requested");
+    // If this is NOT "Requested", the encoding doesn't match or the request has moved state
+    expect(variant).toBe("Requested");
   }, 30_000);
 });
