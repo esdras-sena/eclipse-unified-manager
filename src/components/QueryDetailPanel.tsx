@@ -335,7 +335,6 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                 className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                 onClick={() => {
                   // TODO: Connect wallet and dispute logic
-                  console.log("Dispute proposal:", query.id);
                 }}
               >
                 <AlertTriangle className="h-4 w-4" />
