@@ -431,7 +431,7 @@
           },
           {
             "name": "timestamp",
-            "type": "core::integer::u256"
+            "type": "core::integer::u64"
           },
           {
             "name": "ancillaryData",
@@ -566,20 +566,8 @@
         "name": "get_request",
         "inputs": [
           {
-            "name": "requester",
-            "type": "core::starknet::contract_address::ContractAddress"
-          },
-          {
-            "name": "identifier",
+            "name": "requestId",
             "type": "core::felt252"
-          },
-          {
-            "name": "timestamp",
-            "type": "core::integer::u64"
-          },
-          {
-            "name": "ancillaryData",
-            "type": "core::byte_array::ByteArray"
           }
         ],
         "outputs": [
@@ -697,6 +685,11 @@
     "name": "eclipse_oracle::eclipse_oracle::EclipseOracle::RequestPrice",
     "kind": "struct",
     "members": [
+      {
+        "name": "requestId",
+        "type": "core::felt252",
+        "kind": "data"
+      },
       {
         "name": "requester",
         "type": "core::starknet::contract_address::ContractAddress",
