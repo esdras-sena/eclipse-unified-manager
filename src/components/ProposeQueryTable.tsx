@@ -4,8 +4,6 @@ import { ChevronRight } from "lucide-react";
 import QueryDetailPanel, { OracleType } from "./QueryDetailPanel";
 import usdcIcon from "@/assets/icons/currencies/usdc.svg";
 
-import { RawByteArray } from "@/web3/types";
-
 export interface ProposeQuery {
   id: string;
   title: string;
@@ -28,7 +26,7 @@ export interface ProposeQuery {
   requester?: string;
   requesterTxHash?: string;
   requestTimestamp?: number; // Unix timestamp for contract calls
-  ancillaryDataRaw?: RawByteArray; // Raw ByteArray for contract calls
+  ancillaryDataString?: string; // Decoded string for contract calls
   // Asserter-type fields
   asserter?: string;
   asserterTxHash?: string;
@@ -95,7 +93,7 @@ const ProposeQueryTable = ({ queries }: ProposeQueryTableProps) => {
       requester: query.requester,
       requesterTxHash: query.requesterTxHash,
       timestamp: query.requestTimestamp, // Unix timestamp for contract calls
-      ancillaryDataRaw: query.ancillaryDataRaw, // Raw ByteArray for contract calls
+      ancillaryDataString: query.ancillaryDataString, // Decoded string for contract calls
       asserter: query.asserter,
       asserterTxHash: query.asserterTxHash,
       caller: query.caller,
