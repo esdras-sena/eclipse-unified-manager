@@ -28,7 +28,8 @@ interface ProposePriceParams {
   timestamp: number; // u64
   ancillaryDataString: string; // The decoded string to convert to ByteArray
   proposedPrice: bigint; // i256 value
-  bond: bigint; // Bond amount to approve
+  bond: bigint; // Bond amount
+  finalFee: bigint; // Final fee amount
 }
 
 function utf8ToHex(str: string): string {
@@ -115,32 +116,25 @@ export function useProposePrice() {
       console.log('ancillaryDataHex:', ancillaryDataHex);
       console.log('proposedPrice:', params.proposedPrice.toString());
       console.log('bond:', params.bond.toString());
+      console.log('finalFee:', params.finalFee.toString());
 
-      // Step 1: Approve the oracle contract to spend bond amount
-      console.log('=== Approving bond transfer ===');
-      const tokenContract = new Contract({ abi: erc20Abi, address: USDC_MOCK, providerOrAccount: account });
-      const bondU256 = toU256(params.bond);
-      
-      console.log('Token address:', USDC_MOCK);
-      console.log('Spender (oracle):', oracleAddress);
-      console.log('Amount (u256):', bondU256);
-
-      const approveResult = await tokenContract.invoke("approve", [oracleAddress, bondU256]);
-      console.log('Approve transaction submitted:', approveResult.transaction_hash);
-      
-      // Wait for approval to be confirmed
-      await account.waitForTransaction(approveResult.transaction_hash);
-      console.log('Approve confirmed');
-
-      // Step 2: Call propose_price
-      console.log('=== Calling propose_price ===');
-      const writeContract = new Contract({ abi, address: oracleAddress, providerOrAccount: account });
+      // Calculate total approval amount: bond + finalFee
+      const totalApproval = params.bond + params.finalFee;
+      const approvalU256 = toU256(totalApproval);
       const proposedPriceI256 = toI256(params.proposedPrice);
 
-      console.log('proposedPriceI256:', proposedPriceI256);
+      console.log('=== Multicall: approve + propose_price ===');
+      console.log('Token address:', USDC_MOCK);
+      console.log('Spender (oracle):', oracleAddress);
+      console.log('Total approval (bond + finalFee):', totalApproval.toString());
 
-      // Use invoke with array-style args (same pattern as contract.call in tests)
-      const result = await writeContract.invoke("propose_price", [
+      // Build calldata for approve
+      const tokenContract = new Contract({ abi: erc20Abi, address: USDC_MOCK, providerOrAccount: account });
+      const approveCall = tokenContract.populate("approve", [oracleAddress, approvalU256]);
+
+      // Build calldata for propose_price
+      const oracleContract = new Contract({ abi, address: oracleAddress, providerOrAccount: account });
+      const proposeCall = oracleContract.populate("propose_price", [
         params.requester,
         params.identifier,
         params.timestamp,
@@ -148,7 +142,13 @@ export function useProposePrice() {
         proposedPriceI256
       ]);
 
-      console.log('Propose price transaction submitted:', result.transaction_hash);
+      console.log('Approve call:', approveCall);
+      console.log('Propose call:', proposeCall);
+
+      // Execute both calls in a single multicall transaction
+      const result = await account.execute([approveCall, proposeCall]);
+
+      console.log('Multicall transaction submitted:', result.transaction_hash);
       
       // Wait for transaction to be accepted
       await account.waitForTransaction(result.transaction_hash);

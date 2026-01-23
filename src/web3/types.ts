@@ -99,6 +99,8 @@ export interface CombinedQuery {
   subtitle: string;
   proposal: string;
   bond: string;
+  bondRaw?: bigint; // Raw bond value for contract calls
+  finalFee?: bigint; // Final fee for contract calls
   bondToken?: string;
   status: "active" | "ended" | "disputed";
   timeLeft?: string;
