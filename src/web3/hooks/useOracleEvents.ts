@@ -9,7 +9,7 @@ import {
   OPTIMISTIC_ORACLE_MANAGED_DEPLOY_BLOCK,
   OPTIMISTIC_ORACLE_ASSERTER_DEPLOY_BLOCK,
 } from '../constants';
-import { CombinedQuery } from '../types';
+import { CombinedQuery, ContractState } from '../types';
 import { 
   formatTimestamp, 
   calculateTimeLeft, 
@@ -53,6 +53,49 @@ async function fetchRequestFromContract(
     return null;
   } catch (error) {
     return null;
+  }
+}
+
+// Parse the State enum from get_state result
+function parseContractState(stateResult: any): ContractState {
+  // The result is an object with the active variant as a key
+  // e.g., { Requested: {} } or { Proposed: {} } etc.
+  if (stateResult && typeof stateResult === 'object') {
+    const keys = Object.keys(stateResult);
+    if (keys.length > 0) {
+      const variant = keys[0];
+      if (['Requested', 'Proposed', 'Expired', 'Disputed', 'Resolved', 'Settled'].includes(variant)) {
+        return variant as ContractState;
+      }
+    }
+    // Handle activeVariant pattern from starknet.js
+    if (stateResult.activeVariant) {
+      return stateResult.activeVariant as ContractState;
+    }
+  }
+  // Default fallback
+  return 'Requested';
+}
+
+// Fetch the on-chain state for a request using get_state
+async function fetchRequestState(
+  contract: Contract,
+  requester: string,
+  identifier: string,
+  timestamp: number,
+  ancillaryDataHex: string
+): Promise<ContractState> {
+  try {
+    const result = await contract.callStatic.get_state(
+      requester,
+      identifier,
+      timestamp,
+      ancillaryDataHex
+    );
+    return parseContractState(result);
+  } catch (error) {
+    console.error('Error fetching request state:', error);
+    return 'Requested';
   }
 }
 
@@ -209,17 +252,30 @@ async function fetchRequestsFromEvents(
     // Prepare all contract calls in parallel for bond fetching using requestId
     const requestEntries = Array.from(requestMap.entries()).filter(([, data]) => data.request && data.requestId);
     
-    const bondResults = await Promise.all(
+    // Fetch bond and state in parallel for each request
+    const contractResults = await Promise.all(
       requestEntries.map(async ([, data]) => {
-        if (!data.requestId) return null;
-        return fetchRequestFromContract(contract, data.requestId);
+        if (!data.requestId) return { bondData: null, state: 'Requested' as ContractState };
+        
+        const req = data.request;
+        const requester = normalizeAddress(req.requester);
+        const identifierRaw = normalizeFelt(req.identifier);
+        const requestTimestamp = Number(req.timestamp || 0);
+        const ancillaryDataStr = parseByteArray(req.ancillaryData);
+        
+        const [bondData, state] = await Promise.all([
+          fetchRequestFromContract(contract, data.requestId),
+          fetchRequestState(contract, requester, identifierRaw, requestTimestamp, ancillaryDataStr),
+        ]);
+        
+        return { bondData, state };
       })
     );
     
     for (let i = 0; i < requestEntries.length; i++) {
       const [, data] = requestEntries[i];
       const req = data.request;
-      const contractData = bondResults[i];
+      const { bondData: contractData, state: contractState } = contractResults[i];
       
       const isSettled = !!data.settle;
       const isDisputed = !!data.dispute && !isSettled;
@@ -304,6 +360,7 @@ async function fetchRequestsFromEvents(
         bondRaw: bond, // Raw bigint for contract calls
         finalFee, // Raw bigint for contract calls
         status,
+        contractState, // Actual state from get_state contract call
         timeLeft: expirationTime > 0 && !isSettled ? calculateTimeLeft(expirationTime) : undefined,
         transactionHash: data.txHash,
         eventIndex: String(index),
@@ -524,37 +581,53 @@ export function useOracleEvents() {
   return { queries, loading, error, refetch: fetchData };
 }
 
-// Hook to fetch only verify queries (proposed but not settled)
+// Hook to fetch only verify queries
+// Shows: Expired, Proposed, Disputed, Resolved states
 export function useVerifyQueries() {
   const { queries, loading, error, refetch } = useOracleEvents();
   
-  // Verify screen only shows requests that have been proposed (proposal !== 'Pending')
-  // and are not yet settled (active or disputed status)
-  const verifyQueries = queries.filter(q => 
-    q.proposal !== 'Pending' && (q.status === 'active' || q.status === 'disputed')
-  );
+  const verifyQueries = queries.filter(q => {
+    // For OO/OO Managed: use contractState from get_state
+    if (q.contractState) {
+      return ['Expired', 'Proposed', 'Disputed', 'Resolved'].includes(q.contractState);
+    }
+    // Fallback for Asserter (no get_state): use event-based status
+    return q.proposal !== 'Pending' && q.status !== 'ended';
+  });
   
   return { queries: verifyQueries, loading, error, refetch };
 }
 
-// Hook to fetch only propose queries (requested but not proposed)
+// Hook to fetch only propose queries
+// Shows: Requested state only
 export function useProposeQueries() {
   const { queries, loading, error, refetch } = useOracleEvents();
   
-  const proposeQueries = queries.filter(q => 
-    q.proposal === 'Pending'
-  );
+  const proposeQueries = queries.filter(q => {
+    // For OO/OO Managed: use contractState from get_state
+    if (q.contractState) {
+      return q.contractState === 'Requested';
+    }
+    // Fallback for Asserter: use event-based status
+    return q.proposal === 'Pending';
+  });
   
   return { queries: proposeQueries, loading, error, refetch };
 }
 
 // Hook to fetch only settled queries
+// Shows: Settled state only
 export function useSettledQueries() {
   const { queries, loading, error, refetch } = useOracleEvents();
   
-  const settledQueries = queries.filter(q => 
-    q.status === 'ended' && q.result !== undefined
-  );
+  const settledQueries = queries.filter(q => {
+    // For OO/OO Managed: use contractState from get_state
+    if (q.contractState) {
+      return q.contractState === 'Settled';
+    }
+    // Fallback for Asserter: use event-based status
+    return q.status === 'ended' && q.result !== undefined;
+  });
   
   return { queries: settledQueries, loading, error, refetch };
 }

@@ -92,6 +92,9 @@ export interface RawByteArray {
   pending_word_len: number; // Length of pending word in bytes
 }
 
+// Contract state enum values from get_state
+export type ContractState = 'Requested' | 'Proposed' | 'Expired' | 'Disputed' | 'Resolved' | 'Settled';
+
 // Combined query interface for UI
 export interface CombinedQuery {
   id: string;
@@ -103,6 +106,7 @@ export interface CombinedQuery {
   finalFee?: bigint; // Final fee for contract calls
   bondToken?: string;
   status: "active" | "ended" | "disputed";
+  contractState?: ContractState; // Actual state from get_state contract call
   timeLeft?: string;
   transactionHash: string;
   eventIndex: string;
