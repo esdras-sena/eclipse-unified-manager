@@ -19,7 +19,8 @@ import {
   parseI256,
   felt252ToString,
   normalizeAddress,
-  normalizeFelt
+  normalizeFelt,
+  stringToHexByteArray
 } from '../utils/helpers';
 
 // Import local ABIs
@@ -234,12 +235,15 @@ async function fetchRequestsFromEvents(
         const req = data.request;
         const requester = normalizeAddress(req.requester) || '';
         const identifierRaw = normalizeFelt(req.identifier);
+        // Convert ancillaryData to hex-encoded ByteArray for contract call
+        const ancillaryDataStr = parseByteArray(req.ancillaryData);
+        const ancillaryDataHex = stringToHexByteArray(ancillaryDataStr);
         const contractData = await fetchRequestFromContract(
           contract,
           requester,
           identifierRaw,
           req.timestamp,
-          req.ancillaryData
+          ancillaryDataHex
         );
         
         return contractData;

@@ -2,7 +2,8 @@ import { useCallback, useState } from 'react';
 import { useAccount } from '@starknet-react/core';
 import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS } from '../constants';
 import { OracleType } from '@/components/QueryDetailPanel';
-import { CallData, cairo, byteArray as starknetByteArray } from 'starknet';
+import { CallData, cairo } from 'starknet';
+import { stringToHexByteArray } from '../utils/helpers';
 
 interface ProposePriceParams {
   oracleType: OracleType;
@@ -50,8 +51,8 @@ export function useProposePrice() {
         value: cairo.uint256(params.proposedPrice),
       };
 
-      // Build ByteArray for ancillaryData using starknet.js byteArray module
-      const ancillaryDataByteArray = starknetByteArray.byteArrayFromString(params.ancillaryData);
+      // Build ByteArray for ancillaryData as hex-encoded ByteArray
+      const ancillaryDataByteArray = stringToHexByteArray(params.ancillaryData);
 
       // Call propose_price function
       // identifier is already a raw felt252 hex value
