@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Contract, RpcProvider } from "starknet";
+import { Contract, RpcProvider, byteArray } from "starknet";
 
 import ooAbi from "@/web3/abis/ooAbi.json";
 import { getNodeUrl } from "@/web3/utils/network";
@@ -25,6 +25,14 @@ function extractEnumVariant(value: unknown): string {
   return String(value);
 }
 
+// Same helper as useProposePrice
+function utf8ToHex(str: string): string {
+  const bytes = new TextEncoder().encode(str);
+  let hex = '0x';
+  for (const b of bytes) hex += b.toString(16).padStart(2, '0');
+  return hex;
+}
+
 describe("get_state ancillaryData encoding (debug)", () => {
   it("should return Requested when ancillaryData is encoded correctly", async () => {
     // Values taken from the failing propose attempt logs
@@ -36,8 +44,6 @@ describe("get_state ancillaryData encoding (debug)", () => {
     const timestamp = 1769179432;
     const ancillaryDataString =
       "Will Esdras deploy Eclipse Oracle to Starknet mainnet until his birthday at March 10?";
-    const ancillaryDataHex =
-      "0x57696c6c20457364726173206465706c6f792045636c69707365204f7261636c6520746f20537461726b6e6574206d61696e6e657420756e74696c20686973206269727468646179206174204d617263682031303f";
 
     const provider = new RpcProvider({ nodeUrl: getNodeUrl() });
     const contract = new Contract({
@@ -46,19 +52,36 @@ describe("get_state ancillaryData encoding (debug)", () => {
       providerOrAccount: provider,
     });
 
-    // Encoding candidates:
-    // - Raw UTF-8 string (starknet.js will convert to CairoByteArray internally)
-    // - Hex bytes string (Voyager-style; starknet.js detects 0x.. and uses those bytes)
-    const [stateFromString, stateFromHex] = await Promise.all([
-      contract.callStatic.get_state(requester, identifier, timestamp, ancillaryDataString),
-      contract.callStatic.get_state(requester, identifier, timestamp, ancillaryDataHex),
+    // Build ByteArray exactly like useProposePrice does
+    const ancillaryDataHex = utf8ToHex(ancillaryDataString);
+    
+    // Also try using starknet.js byteArray helper for comparison
+    const ancillaryByteArray = byteArray.byteArrayFromString(ancillaryDataString);
+
+    console.log("ancillaryDataHex:", ancillaryDataHex);
+    console.log("ancillaryByteArray:", ancillaryByteArray);
+
+    // Test with hex string (same as useProposePrice)
+    const stateFromHex = await contract.call("get_state", [
+      requester,
+      identifier,
+      timestamp,
+      ancillaryDataHex,
     ]);
 
-    const v1 = extractEnumVariant(stateFromString);
-    const v2 = extractEnumVariant(stateFromHex);
+    // Test with byteArray struct
+    const stateFromByteArray = await contract.call("get_state", [
+      requester,
+      identifier,
+      timestamp,
+      ancillaryByteArray,
+    ]);
 
-    console.log("get_state variant (from string):", v1);
-    console.log("get_state variant (from hex):", v2);
+    const v1 = extractEnumVariant(stateFromHex);
+    const v2 = extractEnumVariant(stateFromByteArray);
+
+    console.log("get_state variant (from hex):", v1);
+    console.log("get_state variant (from byteArray):", v2);
 
     // Both forms MUST resolve to the same on-chain request key
     expect(v1).toBe(v2);
