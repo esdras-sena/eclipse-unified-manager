@@ -18,6 +18,7 @@ export interface ProposeQuery {
   eventBased?: boolean;
   requestedTime?: string;
   requestedTimeUnix?: string;
+  requestId?: string;
   // Request-type fields
   identifier?: string;
   identifierRaw?: string; // Raw felt252 hex for contract calls
@@ -83,6 +84,7 @@ const ProposeQueryTable = ({ queries }: ProposeQueryTableProps) => {
       description: query.description,
       requestedTime: query.requestedTime || query.timestamp,
       requestedTimeUnix: query.requestedTimeUnix,
+      requestId: query.requestId,
       identifier: query.identifier,
       identifierRaw: query.identifierRaw,
       requester: query.requester,

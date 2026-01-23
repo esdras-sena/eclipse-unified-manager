@@ -29,6 +29,7 @@ const Propose = () => {
       eventIndex: q.eventIndex,
       description: q.description,
       eventBased: q.eventBased,
+      requestId: q.requestId,
       identifier: q.identifier,
       identifierRaw: q.identifierRaw,
       requester: q.requester,
