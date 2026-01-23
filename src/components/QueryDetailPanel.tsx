@@ -14,6 +14,7 @@ import { useProposePrice } from "@/web3/hooks/useProposePrice";
 import { useAccount } from "@starknet-react/core";
 import { toast } from "sonner";
 import usdcIcon from "@/assets/icons/currencies/usdc.svg";
+import { RawByteArray } from "@/web3/types";
 
 export type OracleType = "optimistic-oracle" | "optimistic-oracle-managed" | "optimistic-oracle-asserter";
 
@@ -48,6 +49,8 @@ interface QueryDetailPanelProps {
     requesterTxHash?: string;
     proposer?: string;
     proposerTxHash?: string;
+    timestamp?: number; // Unix timestamp for contract calls
+    ancillaryDataRaw?: RawByteArray; // Raw ByteArray for contract calls
     // Assertion-type specific fields (Optimistic Oracle Asserter)
     asserter?: string;
     asserterTxHash?: string;
@@ -135,9 +138,15 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
       return;
     }
 
-    if (!query.requestId) {
-      toast.error("Missing request ID for proposal");
-      console.error("Missing requestId:", query);
+    // Validate required fields for propose_price
+    if (!query.requester || !query.identifierRaw || !query.timestamp || !query.ancillaryDataRaw) {
+      toast.error("Missing required data for proposal");
+      console.error("Missing proposal data:", {
+        requester: query.requester,
+        identifierRaw: query.identifierRaw,
+        timestamp: query.timestamp,
+        ancillaryDataRaw: query.ancillaryDataRaw,
+      });
       return;
     }
 
@@ -151,7 +160,10 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
     
     const txHash = await proposePrice({
       oracleType: query.oracleType || "optimistic-oracle",
-      requestId: query.requestId,
+      requester: query.requester,
+      identifier: query.identifierRaw,
+      timestamp: query.timestamp,
+      ancillaryData: query.ancillaryDataRaw,
       proposedPrice,
     });
 

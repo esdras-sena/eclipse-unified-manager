@@ -301,6 +301,17 @@ async function fetchRequestsFromEvents(
         }
       }
       
+      // Extract raw ByteArray for contract calls
+      const rawAncillaryData = req.ancillaryData && typeof req.ancillaryData === 'object' 
+        ? {
+            data: Array.isArray(req.ancillaryData.data) 
+              ? req.ancillaryData.data.map((d: any) => normalizeFelt(d))
+              : [],
+            pending_word: normalizeFelt(req.ancillaryData.pending_word) || '0x0',
+            pending_word_len: Number(req.ancillaryData.pending_word_len || 0),
+          }
+        : { data: [], pending_word: '0x0', pending_word_len: 0 };
+      
       queries.push({
         id: String(index + 1),
         title,
@@ -329,6 +340,8 @@ async function fetchRequestsFromEvents(
         proposedTimeUnix: data.propose ? String(Number(data.propose.expirationTimestamp) - 7200) : undefined,
         currency: normalizeAddress(req.currency),
         result: resultDisplay,
+        timestamp: requestTimestamp, // Store raw timestamp for contract calls
+        ancillaryDataRaw: rawAncillaryData, // Store raw ByteArray for contract calls
       });
       
       index++;
