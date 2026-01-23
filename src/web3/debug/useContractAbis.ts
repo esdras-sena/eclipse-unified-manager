@@ -91,31 +91,7 @@ export function useContractAbis() {
 export function AbiDebugPanel() {
   const contracts = useContractAbis();
 
-  useEffect(() => {
-    // Log to console for easy viewing
-    contracts.forEach(contract => {
-      if (!contract.loading && !contract.error && contract.functions.length > 0) {
-        console.log(`\n=== ${contract.name} ===`);
-        console.log(`Address: ${contract.address}`);
-        
-        // Group by view/external
-        const viewFunctions = contract.functions.filter(f => f.stateMutability === 'view');
-        const externalFunctions = contract.functions.filter(f => f.stateMutability === 'external');
-        
-        console.log('\n-- View Functions (read-only, useful for querying state) --');
-        viewFunctions.forEach(fn => {
-          console.log(`  ${fn.name}(${fn.inputs}) -> ${fn.outputs}`);
-        });
-        
-        console.log('\n-- External Functions (state-changing) --');
-        externalFunctions.forEach(fn => {
-          console.log(`  ${fn.name}(${fn.inputs}) -> ${fn.outputs}`);
-        });
-      } else if (contract.error) {
-        console.error(`Error loading ABI for ${contract.name}:`, contract.error);
-      }
-    });
-  }, [contracts]);
+  // Debug logging removed - use browser devtools to inspect 'contracts' if needed
 
   return null; // This is just for debugging, doesn't render anything
 }
