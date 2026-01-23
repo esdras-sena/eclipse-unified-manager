@@ -165,6 +165,7 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
       timestamp: query.timestamp,
       ancillaryDataString: query.ancillaryDataString || query.title || "", // Use the decoded string
       proposedPrice,
+      bond: typeof query.bond === 'bigint' ? query.bond : BigInt(query.bond || 0), // Pass bond for ERC20 approval
     });
 
     if (txHash) {

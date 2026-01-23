@@ -1,11 +1,25 @@
 import { useCallback, useState } from 'react';
 import { useAccount } from '@starknet-react/core';
 import { Contract } from 'starknet';
-import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS } from '../constants';
+import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS, USDC_MOCK } from '../constants';
 import { OracleType } from '@/components/QueryDetailPanel';
 
 import ooAbi from '../abis/ooAbi.json';
 import ooManagedAbi from '../abis/ooManagedAbi.json';
+
+// Minimal ERC20 ABI for approve
+const erc20Abi = [
+  {
+    name: "approve",
+    type: "function",
+    inputs: [
+      { name: "spender", type: "core::starknet::contract_address::ContractAddress" },
+      { name: "amount", type: "core::integer::u256" }
+    ],
+    outputs: [{ type: "core::bool" }],
+    state_mutability: "external"
+  }
+];
 
 interface ProposePriceParams {
   oracleType: OracleType;
@@ -14,6 +28,7 @@ interface ProposePriceParams {
   timestamp: number; // u64
   ancillaryDataString: string; // The decoded string to convert to ByteArray
   proposedPrice: bigint; // i256 value
+  bond: bigint; // Bond amount to approve
 }
 
 function utf8ToHex(str: string): string {
@@ -38,6 +53,13 @@ function toI256(value: bigint) {
       high: high.toString(),
     },
   };
+}
+
+// Build Cairo u256 struct for approve amount
+function toU256(value: bigint) {
+  const low = value & ((1n << 128n) - 1n);
+  const high = value >> 128n;
+  return { low: low.toString(), high: high.toString() };
 }
 
 function getContractAbi(oracleType: OracleType) {
@@ -78,7 +100,7 @@ export function useProposePrice() {
     setError(null);
 
     try {
-      const contractAddress = getContractAddress(params.oracleType);
+      const oracleAddress = getContractAddress(params.oracleType);
       const abi = getContractAbi(params.oracleType) as any;
 
       // Voyager-style: pass ancillary as a HEX string; starknet.js will recognize 0x.. and
@@ -92,16 +114,29 @@ export function useProposePrice() {
       console.log('ancillaryDataString:', params.ancillaryDataString);
       console.log('ancillaryDataHex:', ancillaryDataHex);
       console.log('proposedPrice:', params.proposedPrice.toString());
+      console.log('bond:', params.bond.toString());
 
-      // Build contract with account as provider for invoke
-      const writeContract = new Contract({ abi, address: contractAddress, providerOrAccount: account });
+      // Step 1: Approve the oracle contract to spend bond amount
+      console.log('=== Approving bond transfer ===');
+      const tokenContract = new Contract({ abi: erc20Abi, address: USDC_MOCK, providerOrAccount: account });
+      const bondU256 = toU256(params.bond);
+      
+      console.log('Token address:', USDC_MOCK);
+      console.log('Spender (oracle):', oracleAddress);
+      console.log('Amount (u256):', bondU256);
+
+      const approveResult = await tokenContract.invoke("approve", [oracleAddress, bondU256]);
+      console.log('Approve transaction submitted:', approveResult.transaction_hash);
+      
+      // Wait for approval to be confirmed
+      await account.waitForTransaction(approveResult.transaction_hash);
+      console.log('Approve confirmed');
+
+      // Step 2: Call propose_price
+      console.log('=== Calling propose_price ===');
+      const writeContract = new Contract({ abi, address: oracleAddress, providerOrAccount: account });
       const proposedPriceI256 = toI256(params.proposedPrice);
 
-      console.log('=== propose_price invoke params ===');
-      console.log('requester:', params.requester);
-      console.log('identifier:', params.identifier);
-      console.log('timestamp:', params.timestamp);
-      console.log('ancillaryDataHex:', ancillaryDataHex);
       console.log('proposedPriceI256:', proposedPriceI256);
 
       // Use invoke with array-style args (same pattern as contract.call in tests)
