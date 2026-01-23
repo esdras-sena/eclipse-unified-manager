@@ -2,11 +2,10 @@ import { useCallback, useState } from 'react';
 import { useAccount } from '@starknet-react/core';
 import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS } from '../constants';
 import { OracleType } from '@/components/QueryDetailPanel';
-import { CallData, cairo } from 'starknet';
 
 interface ProposePriceParams {
   oracleType: OracleType;
-  requestId: string; // The unique request identifier
+  requestId: string; // The unique request identifier (felt252 hex)
   proposedPrice: bigint; // The value (positive for YES_OR_NO_QUERY)
 }
 
@@ -39,25 +38,29 @@ export function useProposePrice() {
     try {
       const contractAddress = getContractAddress(params.oracleType);
 
-      // Build the i256 struct for proposedPrice
-      // signal: 0 = positive, 1 = negative
-      // value: u256 with low/high
-      const i256Value = {
-        signal: 0, // 0 = positive
-        value: cairo.uint256(params.proposedPrice),
-      };
-
-      // Call propose_price function with requestId and proposedPrice
-      // Pass requestId exactly as received from the event (already a felt252 hex)
-      console.log('propose_price params:', {
-        requestId: params.requestId,
-        proposedPrice: params.proposedPrice.toString(),
-        i256Value,
-      });
+      // Build calldata manually for propose_price(requestId: felt252, proposedPrice: i256)
+      // i256 struct: { signal: u8, value: u256 { low: u128, high: u128 } }
+      // Total calldata: [requestId, signal, value_low, value_high]
       
-      const calldata = CallData.compile({
+      const priceBigInt = params.proposedPrice;
+      const signal = priceBigInt >= 0n ? 0 : 1;
+      const magnitude = priceBigInt >= 0n ? priceBigInt : -priceBigInt;
+      const low = magnitude & ((1n << 128n) - 1n);
+      const high = magnitude >> 128n;
+
+      const calldata = [
+        params.requestId,           // requestId: felt252
+        String(signal),             // i256.signal: u8
+        low.toString(),             // i256.value.low: u128
+        high.toString(),            // i256.value.high: u128
+      ];
+
+      console.log('propose_price calldata:', {
         requestId: params.requestId,
-        proposedPrice: i256Value,
+        signal,
+        low: low.toString(),
+        high: high.toString(),
+        calldata,
       });
 
       const result = await account.execute({

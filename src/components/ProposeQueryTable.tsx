@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import QueryDetailPanel, { OracleType } from "./QueryDetailPanel";
+import UsdcIcon from "@/assets/icons/currencies/usdc.svg?react";
 
 export interface ProposeQuery {
   id: string;
@@ -159,18 +160,14 @@ const ProposeQueryTable = ({ queries }: ProposeQueryTableProps) => {
                     </span>
                   </td>
                   <td className="py-4 px-4">
-                    <div className="flex items-center gap-1">
-                      <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-primary" />
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <UsdcIcon className="w-4 h-4 flex-shrink-0" />
                       <span className="text-sm text-foreground">{query.bond}</span>
                     </div>
                   </td>
                   <td className="py-4 px-4">
-                    <div className="flex items-center gap-1">
-                      <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-primary" />
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <UsdcIcon className="w-4 h-4 flex-shrink-0" />
                       <span className="text-sm text-foreground">{query.reward}</span>
                     </div>
                   </td>
