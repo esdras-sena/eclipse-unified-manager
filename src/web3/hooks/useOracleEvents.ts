@@ -77,22 +77,36 @@ function parseContractState(stateResult: any): ContractState {
   return 'Requested';
 }
 
+// Convert UTF-8 string to hex for ByteArray encoding
+function utf8ToHex(str: string): string {
+  const bytes = new TextEncoder().encode(str);
+  let hex = '0x';
+  for (const b of bytes) hex += b.toString(16).padStart(2, '0');
+  return hex;
+}
+
 // Fetch the on-chain state for a request using get_state
 async function fetchRequestState(
   contract: Contract,
   requester: string,
   identifier: string,
   timestamp: number,
-  ancillaryDataHex: string
+  ancillaryDataString: string
 ): Promise<ContractState> {
   try {
+    // Convert the decoded ancillary data string back to hex for the contract call
+    const ancillaryDataHex = utf8ToHex(ancillaryDataString);
+    
     const result = await contract.callStatic.get_state(
       requester,
       identifier,
       timestamp,
       ancillaryDataHex
     );
-    return parseContractState(result);
+    
+    const state = parseContractState(result);
+    console.log(`[get_state] requester=${requester.slice(0,10)}... state=${state}`, result);
+    return state;
   } catch (error) {
     console.error('Error fetching request state:', error);
     return 'Requested';
