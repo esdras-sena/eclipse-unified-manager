@@ -306,6 +306,7 @@ async function fetchRequestsFromEvents(
         oracleAddress: contractAddr,
         reward: formatBigInt(reward),
         eventBased,
+        requestId: data.requestId, // Store requestId for propose_price calls
         identifier,
         identifierRaw,
         requester: normalizeAddress(req.requester),

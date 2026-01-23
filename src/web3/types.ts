@@ -103,6 +103,7 @@ export interface CombinedQuery {
   oracleAddress?: string;
   reward?: string;
   // Request-type fields
+  requestId?: string; // The unique request identifier from the contract
   identifier?: string;
   identifierRaw?: string; // Raw felt252 hex for contract calls
   requester?: string;

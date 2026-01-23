@@ -714,20 +714,8 @@
         "name": "propose_price",
         "inputs": [
           {
-            "name": "requester",
-            "type": "core::starknet::contract_address::ContractAddress"
-          },
-          {
-            "name": "identifier",
+            "name": "requestId",
             "type": "core::felt252"
-          },
-          {
-            "name": "timestamp",
-            "type": "core::integer::u64"
-          },
-          {
-            "name": "ancillaryData",
-            "type": "core::byte_array::ByteArray"
           },
           {
             "name": "proposedPrice",

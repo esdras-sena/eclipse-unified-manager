@@ -2,14 +2,11 @@ import { useCallback, useState } from 'react';
 import { useAccount } from '@starknet-react/core';
 import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS } from '../constants';
 import { OracleType } from '@/components/QueryDetailPanel';
-import { CallData, cairo, byteArray } from 'starknet';
+import { CallData, cairo } from 'starknet';
 
 interface ProposePriceParams {
   oracleType: OracleType;
-  requester: string;
-  identifierRaw: string; // Raw felt252 hex value
-  timestamp: string;
-  ancillaryData: string; // Original title/ancillary data string
+  requestId: string; // The unique request identifier
   proposedPrice: bigint; // The value (positive for YES_OR_NO_QUERY)
 }
 
@@ -50,17 +47,9 @@ export function useProposePrice() {
         value: cairo.uint256(params.proposedPrice),
       };
 
-      // Build ByteArray for ancillaryData using starknet.js
-      const ancillaryDataByteArray = byteArray.byteArrayFromString(params.ancillaryData);
-
-      // Call propose_price function
-      // identifier is already a raw felt252 hex value
-      // timestamp is u64, not u256
+      // Call propose_price function with requestId and proposedPrice
       const calldata = CallData.compile({
-        requester: params.requester,
-        identifier: params.identifierRaw,
-        timestamp: params.timestamp,
-        ancillaryData: ancillaryDataByteArray,
+        requestId: params.requestId,
         proposedPrice: i256Value,
       });
 
