@@ -41,6 +41,13 @@ async function fetchRequestFromContract(
   ancillaryData: unknown
 ): Promise<{ bond: bigint; eventBased: boolean } | null> {
   try {
+    // Debug: log the inputs being passed to get_request
+    console.log('=== get_request inputs ===');
+    console.log('requester:', requester);
+    console.log('identifier:', identifier);
+    console.log('timestamp:', timestamp);
+    console.log('ancillaryData:', JSON.stringify(ancillaryData, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+    
     const result = await contract.callStatic.get_request(
       requester,
       identifier,
@@ -48,14 +55,24 @@ async function fetchRequestFromContract(
       ancillaryData as any
     );
 
+    // Debug: log the result
+    console.log('=== get_request result ===');
+    console.log('result:', JSON.stringify(result, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+    
     if (result && (result as any).requestSettings) {
       const requestSettings = (result as any).requestSettings;
+      console.log('requestSettings:', JSON.stringify(requestSettings, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+      console.log('requestSettings.bond:', requestSettings.bond);
+      
       const bond = parseU256(requestSettings.bond);
+      console.log('parsed bond:', bond.toString());
+      
       const eb = requestSettings.eventBased;
       const eventBased = eb === true || eb === 1 || eb === 1n;
       return { bond, eventBased };
     }
 
+    console.log('No requestSettings found in result');
     return null;
   } catch (error) {
     console.error('Error fetching request from contract:', error);
