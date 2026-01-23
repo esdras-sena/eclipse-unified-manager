@@ -12,14 +12,60 @@ interface ProposePriceParams {
   proposedPrice: bigint; // i256 value
 }
 
-// Convert a UTF-8 string to hex format for ancillaryData
-// Format: '0x' + hex bytes of the string
-function stringToHex(str: string): string {
-  let hex = '0x';
+// Convert a UTF-8 string to ByteArray calldata format
+// ByteArray = { data: Array<bytes31>, pending_word: felt252, pending_word_len: u32 }
+// Calldata format: [data_length, ...chunks, pending_word, pending_word_len]
+function serializeStringToByteArray(str: string): string[] {
+  const result: string[] = [];
+  const bytes: number[] = [];
+  
+  // Convert string to UTF-8 bytes
   for (let i = 0; i < str.length; i++) {
-    hex += str.charCodeAt(i).toString(16).padStart(2, '0');
+    const code = str.charCodeAt(i);
+    if (code < 0x80) {
+      bytes.push(code);
+    } else if (code < 0x800) {
+      bytes.push(0xc0 | (code >> 6));
+      bytes.push(0x80 | (code & 0x3f));
+    } else {
+      bytes.push(0xe0 | (code >> 12));
+      bytes.push(0x80 | ((code >> 6) & 0x3f));
+      bytes.push(0x80 | (code & 0x3f));
+    }
   }
-  return hex;
+  
+  // Split into 31-byte chunks
+  const chunkSize = 31;
+  const fullChunks: string[] = [];
+  let i = 0;
+  
+  while (i + chunkSize <= bytes.length) {
+    let hex = '0x';
+    for (let j = 0; j < chunkSize; j++) {
+      hex += bytes[i + j].toString(16).padStart(2, '0');
+    }
+    fullChunks.push(hex);
+    i += chunkSize;
+  }
+  
+  // Remaining bytes become pending_word
+  let pendingWord = '0x0';
+  const pendingLen = bytes.length - i;
+  
+  if (pendingLen > 0) {
+    pendingWord = '0x';
+    for (let j = i; j < bytes.length; j++) {
+      pendingWord += bytes[j].toString(16).padStart(2, '0');
+    }
+  }
+  
+  // Build calldata: [data_length, ...chunks, pending_word, pending_word_len]
+  result.push(String(fullChunks.length));
+  result.push(...fullChunks);
+  result.push(pendingWord);
+  result.push(String(pendingLen));
+  
+  return result;
 }
 
 // Serialize i256 for Starknet calldata
@@ -71,17 +117,17 @@ export function useProposePrice() {
       // - requester: ContractAddress (felt252)
       // - identifier: felt252
       // - timestamp: u64
-      // - ancillaryData: hex-encoded string (0x + utf8 bytes)
+      // - ancillaryData: ByteArray [data_len, ...chunks, pending_word, pending_word_len]
       // - proposedPrice: i256 [signal, low, high]
       
-      // Convert ancillaryData string to hex format
-      const ancillaryDataHex = stringToHex(params.ancillaryDataString);
+      // Serialize ancillaryData string to ByteArray calldata
+      const ancillaryDataCalldata = serializeStringToByteArray(params.ancillaryDataString);
       
       const calldata: string[] = [
         params.requester,           // requester: ContractAddress
         params.identifier,          // identifier: felt252
         String(params.timestamp),   // timestamp: u64
-        ancillaryDataHex,           // ancillaryData: hex-encoded string
+        ...ancillaryDataCalldata,   // ancillaryData: ByteArray
         ...serializeI256(params.proposedPrice),      // proposedPrice: i256
       ];
 
@@ -90,7 +136,7 @@ export function useProposePrice() {
       console.log('identifier:', params.identifier);
       console.log('timestamp:', params.timestamp);
       console.log('ancillaryDataString:', params.ancillaryDataString);
-      console.log('ancillaryDataHex:', ancillaryDataHex);
+      console.log('ancillaryDataCalldata:', ancillaryDataCalldata);
       console.log('proposedPrice:', params.proposedPrice.toString());
       console.log('serialized calldata:', calldata);
 
