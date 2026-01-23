@@ -13,6 +13,7 @@ import {
 import { useProposePrice } from "@/web3/hooks/useProposePrice";
 import { useAccount } from "@starknet-react/core";
 import { toast } from "sonner";
+import UsdcIcon from "@/assets/icons/currencies/usdc.svg?react";
 
 export type OracleType = "optimistic-oracle" | "optimistic-oracle-managed" | "optimistic-oracle-asserter";
 
@@ -267,12 +268,9 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                 <Info className="h-3 w-3" />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">USDC</span>
-                <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-white text-[8px] font-bold">$</span>
-                </div>
+                <UsdcIcon className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm font-medium text-foreground">
-                  {query.bond} {query.bondToken}
+                  {query.bond}
                 </span>
               </div>
             </div>
@@ -282,12 +280,9 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
                 <Info className="h-3 w-3" />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">USDC</span>
-                <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-white text-[8px] font-bold">$</span>
-                </div>
+                <UsdcIcon className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm font-medium text-foreground">
-                  {query.reward || "5"}
+                  {query.reward || "0"}
                 </span>
               </div>
             </div>
