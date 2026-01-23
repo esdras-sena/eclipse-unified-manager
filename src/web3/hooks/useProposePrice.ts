@@ -93,21 +93,25 @@ export function useProposePrice() {
       console.log('ancillaryDataHex:', ancillaryDataHex);
       console.log('proposedPrice:', params.proposedPrice.toString());
 
-      // Build the call using ABI-aware population (avoids manual ByteArray/i256 ordering bugs)
+      // Build contract with account as provider for invoke
       const writeContract = new Contract({ abi, address: contractAddress, providerOrAccount: account });
       const proposedPriceI256 = toI256(params.proposedPrice);
-      const call = writeContract.populateTransaction.propose_price(
+
+      console.log('=== propose_price invoke params ===');
+      console.log('requester:', params.requester);
+      console.log('identifier:', params.identifier);
+      console.log('timestamp:', params.timestamp);
+      console.log('ancillaryDataHex:', ancillaryDataHex);
+      console.log('proposedPriceI256:', proposedPriceI256);
+
+      // Use invoke with array-style args (same pattern as contract.call in tests)
+      const result = await writeContract.invoke("propose_price", [
         params.requester,
         params.identifier,
         params.timestamp,
         ancillaryDataHex,
         proposedPriceI256
-      );
-
-      console.log('=== propose_price call (populated) ===');
-      console.log(call);
-
-      const result = await account.execute(call);
+      ]);
 
       console.log('Propose price transaction submitted:', result.transaction_hash);
       
