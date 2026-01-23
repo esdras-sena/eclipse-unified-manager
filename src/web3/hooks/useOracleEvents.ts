@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { RpcProvider, events, CallData, createAbiParser, Abi, Contract, byteArray as starknetByteArray } from 'starknet';
+import { RpcProvider, events, CallData, createAbiParser, Abi, Contract } from 'starknet';
 import { getNodeUrl } from '../utils/network';
 import { 
   OPTIMISTIC_ORACLE_ADDRESS, 
@@ -31,42 +31,31 @@ function getProvider() {
   return new RpcProvider({ nodeUrl: getNodeUrl() });
 }
 
-// Fetch request details from contract to get bond from RequestSettings
+// Fetch request details from contract to get bond from RequestSettings.
+// IMPORTANT: pass ancillaryData as the *raw ByteArray struct* from events to avoid re-encoding mismatches.
 async function fetchRequestFromContract(
-  contractAddr: string,
-  abi: Abi,
+  contract: Contract,
   requester: string,
   identifier: string,
-  timestamp: number,
-  ancillaryData: string
+  timestamp: unknown,
+  ancillaryData: unknown
 ): Promise<{ bond: bigint; eventBased: boolean } | null> {
   try {
-    const provider = getProvider();
-    const contract = new Contract({
-      abi: abi as any,
-      address: contractAddr,
-      providerOrAccount: provider,
-    });
-    
-    // Build ByteArray for ancillaryData
-    const ancillaryDataByteArray = starknetByteArray.byteArrayFromString(ancillaryData);
-    
-    const result = await contract.get_request(
+    const result = await contract.callStatic.get_request(
       requester,
       identifier,
-      timestamp,
-      ancillaryDataByteArray
+      timestamp as any,
+      ancillaryData as any
     );
-    
-    // Result is a Request struct with requestSettings inside
-    if (result && result.requestSettings) {
-      const bond = parseU256(result.requestSettings.bond);
-      const eventBased = result.requestSettings.eventBased === true || 
-                         result.requestSettings.eventBased === 1n ||
-                         result.requestSettings.eventBased === 1;
+
+    if (result && (result as any).requestSettings) {
+      const requestSettings = (result as any).requestSettings;
+      const bond = parseU256(requestSettings.bond);
+      const eb = requestSettings.eventBased;
+      const eventBased = eb === true || eb === 1 || eb === 1n;
       return { bond, eventBased };
     }
-    
+
     return null;
   } catch (error) {
     console.error('Error fetching request from contract:', error);
@@ -211,6 +200,14 @@ async function fetchRequestsFromEvents(
     // Convert to CombinedQuery - fetch bond from contract for each request
     const queries: CombinedQuery[] = [];
     let index = 0;
+
+    // Reuse a single Contract instance for all bond lookups
+    const provider = getProvider();
+    const contract = new Contract({
+      abi: abi as any,
+      address: contractAddr,
+      providerOrAccount: provider,
+    });
     
     // Prepare all contract calls in parallel for bond fetching
     const requestEntries = Array.from(requestMap.entries()).filter(([, data]) => data.request);
@@ -220,16 +217,12 @@ async function fetchRequestsFromEvents(
         const req = data.request;
         const requester = normalizeAddress(req.requester) || '';
         const identifierRaw = normalizeFelt(req.identifier);
-        const timestamp = Number(req.timestamp || 0);
-        const ancillaryDataStr = parseByteArray(req.ancillaryData);
-        
         const contractData = await fetchRequestFromContract(
-          contractAddr,
-          abi,
+          contract,
           requester,
           identifierRaw,
-          timestamp,
-          ancillaryDataStr
+          req.timestamp,
+          req.ancillaryData
         );
         
         return contractData;
