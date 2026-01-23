@@ -1,8 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useAccount } from '@starknet-react/core';
-import { byteArray, CallData } from 'starknet';
+import { byteArray, Contract, RpcProvider } from 'starknet';
 import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS } from '../constants';
+import { getNodeUrl } from '../utils/network';
 import { OracleType } from '@/components/QueryDetailPanel';
+
+import ooAbi from '../abis/ooAbi.json';
+import ooManagedAbi from '../abis/ooManagedAbi.json';
 
 interface ProposePriceParams {
   oracleType: OracleType;
@@ -13,19 +17,31 @@ interface ProposePriceParams {
   proposedPrice: bigint; // i256 value
 }
 
-// Serialize i256 for Starknet calldata
-// Format: [signal, low, high] where signal is 0 for positive, 1 for negative
-function serializeI256(value: bigint): string[] {
+// Build Cairo i256 struct: { signal: u8, value: u256 { low, high } }
+function toI256(value: bigint) {
   const signal = value >= 0n ? 0 : 1;
   const magnitude = value >= 0n ? value : -value;
   const low = magnitude & ((1n << 128n) - 1n);
   const high = magnitude >> 128n;
-  
-  return [
-    String(signal),
-    low.toString(),
-    high.toString(),
-  ];
+
+  return {
+    signal,
+    value: {
+      low: low.toString(),
+      high: high.toString(),
+    },
+  };
+}
+
+function getContractAbi(oracleType: OracleType) {
+  switch (oracleType) {
+    case 'optimistic-oracle':
+      return ooAbi;
+    case 'optimistic-oracle-managed':
+      return ooManagedAbi;
+    default:
+      throw new Error(`Unsupported oracle type for propose: ${oracleType}`);
+  }
 }
 
 export function useProposePrice() {
@@ -57,39 +73,52 @@ export function useProposePrice() {
     try {
       const contractAddress = getContractAddress(params.oracleType);
 
-      // Build calldata for propose_price(requester, identifier, timestamp, ancillaryData, proposedPrice)
-      // Use starknet.js byteArray.byteArrayFromString() and CallData.compile() for proper encoding
-      
-      // Create ByteArray from string using starknet.js
+      const abi = getContractAbi(params.oracleType) as any;
+      const provider = new RpcProvider({ nodeUrl: getNodeUrl() });
+
+      // Create ByteArray from the RAW decoded ancillaryData string (Voyager-style)
       const ancillaryDataByteArray = byteArray.byteArrayFromString(params.ancillaryDataString);
-      
-      // Compile ByteArray to calldata format using starknet.js CallData.compile
-      const ancillaryDataCalldata = CallData.compile([ancillaryDataByteArray]);
-      
-      // Build full calldata
-      const calldata: string[] = [
-        params.requester,           // requester: ContractAddress
-        params.identifier,          // identifier: felt252
-        String(params.timestamp),   // timestamp: u64
-        ...ancillaryDataCalldata,   // ancillaryData: ByteArray (properly compiled)
-        ...serializeI256(params.proposedPrice),      // proposedPrice: i256
-      ];
 
-      console.log('=== propose_price calldata ===');
-      console.log('requester:', params.requester);
-      console.log('identifier:', params.identifier);
-      console.log('timestamp:', params.timestamp);
-      console.log('ancillaryDataString:', params.ancillaryDataString);
-      console.log('ancillaryDataByteArray:', ancillaryDataByteArray);
-      console.log('ancillaryDataCalldata:', ancillaryDataCalldata);
-      console.log('proposedPrice:', params.proposedPrice.toString());
-      console.log('serialized calldata:', calldata);
+      // Preflight: verify encoding matches on-chain by calling get_state.
+      // Requested == 1 per ABI enum ordering.
+      const readContract = new Contract({ abi, address: contractAddress, providerOrAccount: provider });
+      const state = await readContract.callStatic.get_state(
+        params.requester,
+        params.identifier,
+        params.timestamp,
+        ancillaryDataByteArray
+      );
 
-      const result = await account.execute({
-        contractAddress,
-        entrypoint: 'propose_price',
-        calldata,
-      });
+      const stateVariant =
+        state && typeof state === 'object' && typeof (state as any).activeVariant === 'function'
+          ? (state as any).activeVariant()
+          : state && typeof state === 'object'
+            ? Object.keys(state as any)[0]
+            : String(state);
+
+      console.log('=== get_state preflight ===');
+      console.log('state raw:', state);
+      console.log('state variant:', stateVariant);
+
+      if (String(stateVariant) !== 'Requested') {
+        throw new Error(`get_state returned ${String(stateVariant)} (expected Requested). Not proposing.`);
+      }
+
+      // Build the call using ABI-aware population (avoids manual ByteArray/i256 ordering bugs)
+      const writeContract = new Contract({ abi, address: contractAddress, providerOrAccount: account });
+      const proposedPriceI256 = toI256(params.proposedPrice);
+      const call = writeContract.populateTransaction.propose_price(
+        params.requester,
+        params.identifier,
+        params.timestamp,
+        ancillaryDataByteArray,
+        proposedPriceI256
+      );
+
+      console.log('=== propose_price call (populated) ===');
+      console.log(call);
+
+      const result = await account.execute(call);
 
       console.log('Propose price transaction submitted:', result.transaction_hash);
       
