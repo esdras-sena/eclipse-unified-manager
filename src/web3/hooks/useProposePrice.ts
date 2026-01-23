@@ -2,35 +2,24 @@ import { useCallback, useState } from 'react';
 import { useAccount } from '@starknet-react/core';
 import { OPTIMISTIC_ORACLE_ADDRESS, OPTIMISTIC_ORACLE_MANAGED_ADDRESS } from '../constants';
 import { OracleType } from '@/components/QueryDetailPanel';
-import { RawByteArray } from '../types';
 
 interface ProposePriceParams {
   oracleType: OracleType;
   requester: string; // ContractAddress
   identifier: string; // felt252 hex (identifierRaw)
   timestamp: number; // u64
-  ancillaryData: RawByteArray; // ByteArray struct
+  ancillaryDataString: string; // The decoded string to convert to hex
   proposedPrice: bigint; // i256 value
 }
 
-// Serialize ByteArray for Starknet calldata
-// Format: [data_length, ...data_chunks, pending_word, pending_word_len]
-function serializeByteArray(byteArray: RawByteArray): string[] {
-  const result: string[] = [];
-  
-  // Array length first
-  result.push(String(byteArray.data.length));
-  
-  // Then all data chunks (bytes31 felts)
-  for (const chunk of byteArray.data) {
-    result.push(chunk);
+// Convert a UTF-8 string to hex format for ancillaryData
+// Format: '0x' + hex bytes of the string
+function stringToHex(str: string): string {
+  let hex = '0x';
+  for (let i = 0; i < str.length; i++) {
+    hex += str.charCodeAt(i).toString(16).padStart(2, '0');
   }
-  
-  // Then pending_word and pending_word_len
-  result.push(byteArray.pending_word);
-  result.push(String(byteArray.pending_word_len));
-  
-  return result;
+  return hex;
 }
 
 // Serialize i256 for Starknet calldata
@@ -82,14 +71,17 @@ export function useProposePrice() {
       // - requester: ContractAddress (felt252)
       // - identifier: felt252
       // - timestamp: u64
-      // - ancillaryData: ByteArray [data_len, ...data, pending_word, pending_word_len]
+      // - ancillaryData: hex-encoded string (0x + utf8 bytes)
       // - proposedPrice: i256 [signal, low, high]
+      
+      // Convert ancillaryData string to hex format
+      const ancillaryDataHex = stringToHex(params.ancillaryDataString);
       
       const calldata: string[] = [
         params.requester,           // requester: ContractAddress
         params.identifier,          // identifier: felt252
         String(params.timestamp),   // timestamp: u64
-        ...serializeByteArray(params.ancillaryData), // ancillaryData: ByteArray
+        ancillaryDataHex,           // ancillaryData: hex-encoded string
         ...serializeI256(params.proposedPrice),      // proposedPrice: i256
       ];
 
@@ -97,7 +89,8 @@ export function useProposePrice() {
       console.log('requester:', params.requester);
       console.log('identifier:', params.identifier);
       console.log('timestamp:', params.timestamp);
-      console.log('ancillaryData:', params.ancillaryData);
+      console.log('ancillaryDataString:', params.ancillaryDataString);
+      console.log('ancillaryDataHex:', ancillaryDataHex);
       console.log('proposedPrice:', params.proposedPrice.toString());
       console.log('serialized calldata:', calldata);
 
