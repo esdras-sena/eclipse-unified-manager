@@ -58,6 +58,31 @@ const getChainColor = (chain: string) => {
 const QueryTable = ({ queries }: QueryTableProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedQuery, setSelectedQuery] = useState<Query | null>(null);
+  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
+
+  // Single shared timer for all rows (keeps table countdowns live)
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setNow(Math.floor(Date.now() / 1000));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const getChallengeLeft = (q: Query): { label: string; ended: boolean } => {
+    const exp = q.expirationTimestamp;
+    if (!exp) return { label: q.timeLeft || "—", ended: false };
+
+    const diff = exp - now;
+    if (diff <= 0) return { label: "Ended", ended: true };
+
+    const hours = Math.floor(diff / 3600);
+    const minutes = Math.floor((diff % 3600) / 60);
+    const seconds = diff % 60;
+
+    if (hours > 0) return { label: `${hours} h ${minutes} m ${seconds} s`, ended: false };
+    if (minutes > 0) return { label: `${minutes} m ${seconds} s`, ended: false };
+    return { label: `${seconds} s`, ended: false };
+  };
 
   // Sync selected query with URL params when queries change
   useEffect(() => {
@@ -146,11 +171,20 @@ const QueryTable = ({ queries }: QueryTableProps) => {
                     </div>
                   </td>
                   <td className="py-4 px-4">
-                    {query.status === "active" && query.timeLeft && (
-                      <span className="text-sm status-active font-medium animate-pulse-glow">
-                        {query.timeLeft}
-                      </span>
-                    )}
+                    {query.status === "active" && (() => {
+                      const { label, ended } = getChallengeLeft(query);
+                      return (
+                        <span
+                          className={
+                            ended
+                              ? "text-sm text-muted-foreground font-medium"
+                              : "text-sm status-active font-medium animate-pulse-glow"
+                          }
+                        >
+                          {label}
+                        </span>
+                      );
+                    })()}
                     {query.status === "ended" && (
                       <Badge variant="ended">Ended</Badge>
                     )}
