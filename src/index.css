@@ -30,7 +30,7 @@
     --popover: 0 0% 11%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 0 85% 65%;
+    --primary: 38 100% 51%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 15%;
@@ -39,7 +39,7 @@
     --muted: 0 0% 18%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 0 85% 65%;
+    --accent: 38 100% 51%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 50%;
@@ -47,30 +47,30 @@
 
     --border: 0 0% 20%;
     --input: 0 0% 15%;
-    --ring: 0 85% 65%;
+    --ring: 38 100% 51%;
 
     --radius: 0.75rem;
 
-    /* Eclipse Custom Tokens */
-    --gradient-hero: linear-gradient(135deg, hsl(0 85% 35%) 0%, hsl(0 0% 8%) 60%);
+    /* Eclipse Custom Tokens - Orange theme */
+    --gradient-hero: linear-gradient(135deg, hsl(38 100% 35%) 0%, hsl(0 0% 8%) 60%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 13%) 0%, hsl(0 0% 10%) 100%);
-    --gradient-accent: linear-gradient(90deg, hsl(0 85% 60%) 0%, hsl(15 90% 55%) 100%);
+    --gradient-accent: linear-gradient(90deg, hsl(38 100% 51%) 0%, hsl(36 100% 51%) 100%);
     
-    --status-active: 0 85% 60%;
-    --status-ended: 15 85% 55%;
+    --status-active: 38 100% 51%;
+    --status-ended: 36 100% 51%;
     --status-disputed: 45 90% 55%;
     
-    --shadow-glow: 0 0 40px hsl(0 85% 50% / 0.15);
+    --shadow-glow: 0 0 40px hsl(38 100% 51% / 0.15);
     --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.3);
 
     --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 0 85% 65%;
+    --sidebar-primary: 38 100% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 15%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 0 85% 65%;
+    --sidebar-ring: 38 100% 51%;
   }
 
   .dark {
@@ -80,19 +80,19 @@
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 11%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 85% 65%;
+    --primary: 38 100% 51%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 18%;
     --muted-foreground: 0 0% 60%;
-    --accent: 0 85% 65%;
+    --accent: 38 100% 51%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 20%;
     --input: 0 0% 15%;
-    --ring: 0 85% 65%;
+    --ring: 38 100% 51%;
   }
 }
 

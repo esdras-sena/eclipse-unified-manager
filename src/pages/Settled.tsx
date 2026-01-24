@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import Header from "@/components/Header";
-import AnnouncementBanner from "@/components/AnnouncementBanner";
 import VoteTimer from "@/components/VoteTimer";
 import SettledHeroSection from "@/components/SettledHeroSection";
 import FilterBar, { OracleFilterValue } from "@/components/FilterBar";
@@ -69,7 +68,6 @@ const Settled = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <AnnouncementBanner />
       <VoteTimer />
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
       <SettledHeroSection requestCount={filteredQueries.length} />
