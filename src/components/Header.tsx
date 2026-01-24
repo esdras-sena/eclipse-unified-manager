@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Wallet } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { ConnectButton } from "./ConnectButton";
+import eclipseLogo from "@/assets/eclipse-logo.jpg";
 
 interface HeaderProps {
   activeTab: string;
@@ -21,9 +22,7 @@ const Header = ({ activeTab, onTabChange }: HeaderProps) => {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">E</span>
-              </div>
+              <img src={eclipseLogo} alt="Eclipse" className="h-8 w-8 rounded-lg object-cover" />
               <span className="text-lg font-semibold text-foreground">ECLIPSE</span>
               <span className="text-muted-foreground text-sm">ORACLE</span>
             </div>

@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import Header from "@/components/Header";
-import AnnouncementBanner from "@/components/AnnouncementBanner";
 import VoteTimer from "@/components/VoteTimer";
 import ProposeHeroSection from "@/components/ProposeHeroSection";
 import FilterBar, { OracleFilterValue } from "@/components/FilterBar";
@@ -71,7 +70,6 @@ const Propose = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <AnnouncementBanner />
       <VoteTimer />
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
       <ProposeHeroSection requestCount={filteredQueries.length} />

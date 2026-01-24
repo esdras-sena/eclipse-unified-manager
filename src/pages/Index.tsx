@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import AnnouncementBanner from "@/components/AnnouncementBanner";
 import VoteTimer from "@/components/VoteTimer";
 import HeroSection from "@/components/HeroSection";
 import FilterBar, { OracleFilterValue } from "@/components/FilterBar";
@@ -74,7 +73,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <AnnouncementBanner />
       <VoteTimer />
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
       <HeroSection statementCount={filteredQueries.length} />
