@@ -139,6 +139,7 @@ export interface CombinedQuery {
   proposedTimeUnix?: string;
   settledTime?: string;
   settledTimeUnix?: string;
+  expirationTimestamp?: number; // Unix timestamp for challenge period countdown
   result?: string;
   currency?: string;
 }

@@ -27,12 +27,17 @@ const Index = () => {
       bondToken: q.bondToken,
       status: q.status,
       timeLeft: q.timeLeft,
+      expirationTimestamp: q.expirationTimestamp,
       transactionHash: q.transactionHash,
       eventIndex: q.eventIndex,
       description: q.description,
       eventBased: q.eventBased,
       oracleType: q.oracleType,
       reward: q.reward,
+      requestedTime: q.requestedTime,
+      requestedTimeUnix: q.requestedTimeUnix,
+      proposedTime: q.proposedTime,
+      proposedTimeUnix: q.proposedTimeUnix,
       identifier: q.identifier,
       requester: q.requester,
       requesterTxHash: q.requesterTxHash,
@@ -43,6 +48,7 @@ const Index = () => {
       caller: q.caller,
       escalationManager: q.escalationManager,
       callbackRecipient: q.callbackRecipient,
+      oracleAddress: q.oracleAddress,
     }));
     
     if (selectedOracle !== "all") {
