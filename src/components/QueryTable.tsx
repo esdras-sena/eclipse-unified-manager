@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ChevronRight, Info } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import QueryDetailPanel, { OracleType } from "./QueryDetailPanel";
+import usdcIcon from "@/assets/icons/currencies/usdc.svg";
 
 export interface Query {
   id: string;
@@ -160,14 +161,9 @@ const QueryTable = ({ queries }: QueryTableProps) => {
                     <span className="text-sm text-foreground">{query.proposal}</span>
                   </td>
                   <td className="py-4 px-4">
-                    <div className="flex items-center gap-1">
-                      <Info className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-sm text-foreground">
-                        {query.bond}
-                        {query.bondToken && (
-                          <span className="text-muted-foreground ml-1">{query.bondToken}</span>
-                        )}
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <img src={usdcIcon} alt="USDC" className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-sm text-foreground">{query.bond}</span>
                     </div>
                   </td>
                   <td className="py-4 px-4">
