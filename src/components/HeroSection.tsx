@@ -1,4 +1,4 @@
-import { Shield } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 interface HeroSectionProps {
   statementCount: number;
@@ -26,7 +26,7 @@ const HeroSection = ({ statementCount }: HeroSectionProps) => {
         {/* Title */}
         <div className="flex items-center gap-4 mb-8">
           <div className="p-3 rounded-xl bg-card/50 border border-border">
-            <Shield className="h-8 w-8 text-muted-foreground" />
+            <ShieldCheck className="h-8 w-8 text-muted-foreground" />
           </div>
           <h1 className="text-4xl font-light text-foreground">
             Verify <span className="text-primary font-semibold">{statementCount}</span> statements

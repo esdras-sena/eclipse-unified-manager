@@ -1,4 +1,4 @@
-import { Settings2 } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 
 interface ProposeHeroSectionProps {
   requestCount: number;
@@ -28,7 +28,7 @@ const ProposeHeroSection = ({ requestCount }: ProposeHeroSectionProps) => {
       <div className="container mx-auto relative z-10">
         <div className="flex items-center gap-4 mb-8">
           <div className="p-3 rounded-lg bg-muted/50 border border-border">
-            <Settings2 className="h-8 w-8 text-muted-foreground" />
+            <SlidersHorizontal className="h-8 w-8 text-muted-foreground" />
           </div>
           <h1 className="text-4xl font-light text-foreground">
             Propose answers to{" "}
