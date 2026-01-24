@@ -42,6 +42,7 @@ interface QueryDetailPanelProps {
     proposedTimeUnix?: string;
     settledTime?: string;
     settledTimeUnix?: string;
+    expirationTimestamp?: number; // Unix timestamp for live countdown
     // Request-type specific fields (Optimistic Oracle, OO Managed)
     requestId?: string; // The unique request identifier for contract calls
     identifier?: string;
@@ -69,8 +70,43 @@ interface QueryDetailPanelProps {
 const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProps) => {
   const navigate = useNavigate();
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
+  const [timeLeft, setTimeLeft] = useState<string>("");
   const { address } = useAccount();
   const { proposePrice, isPending, error: proposeError } = useProposePrice();
+  
+  // Live countdown timer for challenge period
+  useEffect(() => {
+    if (!query?.expirationTimestamp || type !== "verify") {
+      setTimeLeft("");
+      return;
+    }
+    
+    const updateCountdown = () => {
+      const now = Math.floor(Date.now() / 1000);
+      const remaining = query.expirationTimestamp! - now;
+      
+      if (remaining <= 0) {
+        setTimeLeft("Ended");
+        return;
+      }
+      
+      const hours = Math.floor(remaining / 3600);
+      const minutes = Math.floor((remaining % 3600) / 60);
+      const seconds = remaining % 60;
+      
+      if (hours > 0) {
+        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+      } else if (minutes > 0) {
+        setTimeLeft(`${minutes}m ${seconds}s`);
+      } else {
+        setTimeLeft(`${seconds}s`);
+      }
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [query?.expirationTimestamp, type]);
   
   // Lock body scroll when panel is open
   useEffect(() => {
@@ -308,15 +344,14 @@ const QueryDetailPanel = ({ isOpen, onClose, query, type }: QueryDetailPanelProp
           {type === "verify" && (
             <div className="space-y-1">
               <div className="flex items-center gap-1 text-muted-foreground">
-                <span className="text-xs">Challenge period ends</span>
+                <span className="text-xs">Challenge period left</span>
                 <Info className="h-3 w-3" />
               </div>
-              <span className="text-sm text-foreground">
-                {query.status === "active" && query.timeLeft
-                  ? `In ${query.timeLeft}`
-                  : query.status === "ended"
-                  ? "Ended"
-                  : "Disputed"}
+              <span className={`text-sm font-medium ${timeLeft === "Ended" ? "text-muted-foreground" : "text-primary animate-pulse"}`}>
+                {query.status === "disputed" 
+                  ? "Disputed"
+                  : timeLeft || query.timeLeft || "—"
+                }
               </span>
             </div>
           )}

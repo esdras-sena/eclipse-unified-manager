@@ -13,6 +13,7 @@ export interface Query {
   bondToken?: string;
   status: "active" | "ended" | "disputed";
   timeLeft?: string;
+  expirationTimestamp?: number; // Unix timestamp for live countdown
   // Extended fields for detail panel
   transactionHash?: string;
   eventIndex?: string;

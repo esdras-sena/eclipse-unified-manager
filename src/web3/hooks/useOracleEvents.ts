@@ -341,11 +341,21 @@ async function fetchRequestsFromEvents(
       }
       
       // Format proposal value based on identifier type
+      // YES_OR_NO_QUERY: 1e18 = YES, 5e17 = Unknown, 0 = NO
+      const YES_VALUE = BigInt('1000000000000000000'); // 1e18
+      const UNKNOWN_VALUE = BigInt('500000000000000000'); // 5e17
       let proposalDisplay = 'Pending';
       if (isProposed) {
         if (identifier === 'YES_OR_NO_QUERY') {
-          // For YES_OR_NO_QUERY: 1 = YES, 0 = NO
-          proposalDisplay = proposedPrice === BigInt(1) ? 'YES' : proposedPrice === BigInt(0) ? 'NO' : formatBigInt(proposedPrice);
+          if (proposedPrice === YES_VALUE) {
+            proposalDisplay = 'Yes';
+          } else if (proposedPrice === UNKNOWN_VALUE) {
+            proposalDisplay = 'Unknown';
+          } else if (proposedPrice === BigInt(0)) {
+            proposalDisplay = 'No';
+          } else {
+            proposalDisplay = formatBigInt(proposedPrice);
+          }
         } else {
           proposalDisplay = formatBigInt(proposedPrice);
         }
@@ -355,7 +365,15 @@ async function fetchRequestsFromEvents(
       let resultDisplay: string | undefined = undefined;
       if (isSettled) {
         if (identifier === 'YES_OR_NO_QUERY') {
-          resultDisplay = settledPrice === BigInt(1) ? 'YES' : settledPrice === BigInt(0) ? 'NO' : formatBigInt(settledPrice);
+          if (settledPrice === YES_VALUE) {
+            resultDisplay = 'Yes';
+          } else if (settledPrice === UNKNOWN_VALUE) {
+            resultDisplay = 'Unknown';
+          } else if (settledPrice === BigInt(0)) {
+            resultDisplay = 'No';
+          } else {
+            resultDisplay = formatBigInt(settledPrice);
+          }
         } else {
           resultDisplay = formatBigInt(settledPrice);
         }
@@ -401,6 +419,7 @@ async function fetchRequestsFromEvents(
         requestedTimeUnix: String(requestTimestamp),
         proposedTime: data.propose ? formatTimestamp(Number(data.propose.expirationTimestamp) - 7200) : undefined,
         proposedTimeUnix: data.propose ? String(Number(data.propose.expirationTimestamp) - 7200) : undefined,
+        expirationTimestamp: expirationTime > 0 ? expirationTime : undefined, // For live countdown
         currency: normalizeAddress(req.currency),
         result: resultDisplay,
         timestamp: requestTimestamp, // Store raw timestamp for contract calls
