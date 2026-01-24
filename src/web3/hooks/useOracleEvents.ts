@@ -36,7 +36,13 @@ function getProvider() {
 async function fetchRequestFromContract(
   contract: Contract,
   requestId: string
-): Promise<{ bond: bigint; eventBased: boolean; finalFee: bigint } | null> {
+): Promise<{
+  bond: bigint;
+  eventBased: boolean;
+  finalFee: bigint;
+  proposedPrice?: bigint;
+  expirationTime?: number;
+} | null> {
   try {
     // Match starknet.js "call" pattern (same as tests)
     const result = await contract.call('get_request', [requestId]);
@@ -48,7 +54,40 @@ async function fetchRequestFromContract(
       
       const eb = requestSettings.eventBased;
       const eventBased = eb === true || eb === 1 || eb === 1n;
-      return { bond, eventBased, finalFee };
+
+      // Request struct fields (source of truth): proposedPrice (i256) and expirationTime (u64)
+      let proposedPrice: bigint | undefined = undefined;
+      try {
+        const rawProposed =
+          (result as any).proposedPrice ??
+          (result as any).proposed_price ??
+          (result as any).proposed_price_i256;
+        if (rawProposed !== undefined) proposedPrice = parseI256(rawProposed);
+      } catch {
+        // ignore
+      }
+
+      const toSafeNumber = (v: any): number => {
+        if (v === null || v === undefined) return 0;
+        try {
+          if (typeof v === 'number') return v;
+          if (typeof v === 'bigint') return Number(v);
+          if (typeof v === 'string') return v.startsWith('0x') ? Number(BigInt(v)) : Number(v);
+          if (typeof v === 'object' && typeof v.toString === 'function') return toSafeNumber(v.toString());
+          return Number(v);
+        } catch {
+          return 0;
+        }
+      };
+
+      const rawExpiration =
+        (result as any).expirationTime ??
+        (result as any).expiration_time ??
+        (result as any).expirationTimestamp ??
+        (result as any).expiration_timestamp;
+      const expirationTime = rawExpiration !== undefined ? toSafeNumber(rawExpiration) : undefined;
+
+      return { bond, eventBased, finalFee, proposedPrice, expirationTime };
     }
 
     return null;
@@ -300,9 +339,12 @@ async function fetchRequestsFromEvents(
       
       const isSettled = !!data.settle;
       const isDisputed = !!data.dispute && !isSettled;
-      const isProposed = !!data.propose;
-      
-      const expirationTime = data.propose ? Number(data.propose.expirationTimestamp || 0) : 0;
+
+      // Use Request fields from get_request as source of truth
+      const expirationTime =
+        contractData?.expirationTime ??
+        (data.propose ? Number(data.propose.expirationTimestamp || 0) : 0);
+
       const now = Math.floor(Date.now() / 1000);
       const isExpired = expirationTime > 0 && expirationTime <= now;
       
@@ -318,7 +360,10 @@ async function fetchRequestsFromEvents(
       const bond = contractData?.bond ?? BigInt(0);
       const finalFee = contractData?.finalFee ?? BigInt(0);
       const eventBased = contractData?.eventBased ?? false;
-      const proposedPrice = data.propose ? parseI256(data.propose.proposedPrice) : BigInt(0);
+
+      const proposedPrice =
+        contractData?.proposedPrice ??
+        (data.propose ? parseI256(data.propose.proposedPrice) : BigInt(0));
       const settledPrice = data.settle ? parseI256(data.settle.price) : BigInt(0);
       
       const identifierRaw = normalizeFelt(req.identifier); // Raw hex for contract calls
@@ -345,7 +390,9 @@ async function fetchRequestsFromEvents(
       const YES_VALUE = BigInt('1000000000000000000'); // 1e18
       const UNKNOWN_VALUE = BigInt('500000000000000000'); // 5e17
       let proposalDisplay = 'Pending';
-      if (isProposed) {
+
+      const hasProposal = expirationTime > 0 || contractState !== 'Requested';
+      if (hasProposal) {
         if (identifier === 'YES_OR_NO_QUERY') {
           if (proposedPrice === YES_VALUE) {
             proposalDisplay = 'Yes';
@@ -419,7 +466,7 @@ async function fetchRequestsFromEvents(
         requestedTimeUnix: String(requestTimestamp),
         proposedTime: data.propose ? formatTimestamp(Number(data.propose.expirationTimestamp) - 7200) : undefined,
         proposedTimeUnix: data.propose ? String(Number(data.propose.expirationTimestamp) - 7200) : undefined,
-        expirationTimestamp: expirationTime > 0 ? expirationTime : undefined, // For live countdown
+        expirationTimestamp: expirationTime > 0 ? expirationTime : undefined, // Request.expirationTime (source of truth)
         currency: normalizeAddress(req.currency),
         result: resultDisplay,
         timestamp: requestTimestamp, // Store raw timestamp for contract calls
