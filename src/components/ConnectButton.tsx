@@ -330,18 +330,12 @@ export function ConnectButton() {
 }
 
 const connectButtonStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "var(--justify-content, center)",
-  height: "45px",
-  minWidth: "190px",
-  width: "100%",
-  paddingInline: "20px",
-  borderRadius: "4px",
-  font: "var(--body-sm)",
-  color: "#ffffff",
-  backgroundColor: "#ff4d4f",
-  transition: "filter var(--animation-duration)",
+  backgroundColor: '#f59e0b',     // amber-500 (example)
+  color: 'hsl(var(--primary-foreground))',
+  fontWeight: 500,
+  paddingLeft: '1.5rem',          // px-6
+  paddingRight: '1.5rem',
+  borderRadius: '9999px',          // rounded-full
 }
 
 const Wrapper = styled.div`

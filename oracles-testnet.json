@@ -1,7 +1,7 @@
 {
-  "managedOracle": "0x7a9c6e02a1ae1c3afb0d52f258919b08b069f66f8864c51255dc641b7e63512",
-  "Oracle": "0x730c29a5f1e6cc39c19800b952bf43b7d530570db71a1ce5b3d99c059d68c81",
-  "AsserterOracle": "0x36c50cbcaf478ef252e27ba46bbbaf7676f32deba44fd1fd0102b996cfe8cee",
-  "USDCMock": "0x6a414304d4d759713907e15e826395f5406a73d6cbd234fd794d91f52d2fc91",
-  "AddressWhitelist": "0x3497ac1bc2ce62d254acdb2e8e7fe488fffb8d0c84c2f127ed35edd2b252ec4"
+  "managedOracle": "0x23faf70c1b0262c46a72ed70125380bef435025d2f0e1d5184b528fd96b570c",
+  "Oracle": "0x246e9c22ebcabf4aafc8c939481557d2f77b94f9f586372cbb6b9951ee6b5a",
+  "AsserterOracle": "0x602ff5e6c02b20203d1e5550a791345f1cb6acb42b257e2e4bfda8bddb1b956",
+  "USDCMock": "0x2257581a17eb707cd3c75a92bc3235a53f30ee9015e3284e6e9add18e357651",
+  "AddressWhitelist": "0x2a7f7969773db5a5d1e935b9dadc4d5fcd7c143704d4ff14440e3a15bd8ef7d"
 }
