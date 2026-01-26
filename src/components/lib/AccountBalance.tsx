@@ -2,6 +2,8 @@ import { useReadContract} from "@starknet-react/core";
 import Erc20Abi from "./token.abi.json";
 import { formatCurrency } from "./helpers";
 import { Abi } from "starknet";
+import ethIcon from "@/assets/icons/currencies/eth.svg";
+import strkIcon from "@/assets/strk.svg";
 
 type Props = {
   address: string;
@@ -37,8 +39,8 @@ function AccountBalance({ address, heading = true }: Props) {
       <div className="flex flex-col gap-4 text-card-foreground">
         <div className="flex justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-7 w-7 rounded-full md:h-9 md:w-9">
-              <img className="w-full" src="/assets/eth.svg" alt="" />
+            <div className="h-7 w-7 rounded-full md:h-9 md:w-9 flex items-center justify-center bg-muted/30">
+              <img className="w-5 h-5" src={ethIcon} alt="ETH" />
             </div>
             <div>
               <p className="mb-1 text-sm font-medium">ETH</p>
@@ -51,8 +53,8 @@ function AccountBalance({ address, heading = true }: Props) {
         </div>
         <div className="flex justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-7 w-7 rounded-full md:h-9 md:w-9">
-              <img className="w-full" src="/assets/strk.svg" alt="" />
+            <div className="h-7 w-7 rounded-full md:h-9 md:w-9 flex items-center justify-center bg-muted/30">
+              <img className="w-5 h-5" src={strkIcon} alt="STRK" />
             </div>
             <div>
               <p className="mb-1 text-sm font-medium">STRK</p>
