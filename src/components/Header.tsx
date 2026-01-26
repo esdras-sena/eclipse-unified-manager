@@ -20,12 +20,9 @@ const Header = ({ activeTab, onTabChange }: HeaderProps) => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <img src={eclipseLogo} alt="Eclipse" className="h-8 w-8 rounded-lg object-cover" />
-              <span className="text-lg font-semibold text-foreground">ECLIPSE</span>
-              <span className="text-muted-foreground text-sm">ORACLE</span>
-            </div>
+          <div className="flex items-center gap-3">
+            <img src={eclipseLogo} alt="Eclipse" className="h-9 w-9 rounded-full object-cover" />
+            <span className="text-xl font-semibold text-primary tracking-wide">ECLIPSE</span>
           </div>
 
           {/* Navigation */}
