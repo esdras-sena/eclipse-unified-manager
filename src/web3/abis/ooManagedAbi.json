@@ -871,6 +871,34 @@
       },
       {
         "type": "function",
+        "name": "get_request_id",
+        "inputs": [
+          {
+            "name": "requester",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "identifier",
+            "type": "core::felt252"
+          },
+          {
+            "name": "timestamp",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "ancillaryData",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
         "name": "get_all_requests",
         "inputs": [],
         "outputs": [
