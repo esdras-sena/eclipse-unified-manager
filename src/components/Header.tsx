@@ -21,7 +21,13 @@ const Header = ({ activeTab, onTabChange }: HeaderProps) => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-1">
-            <img src={eclipseLogo} alt="Eclipse" className="-mr-2 object-contain" style={{ height: '48px', width: '48px' }} />
+            <img
+              src={eclipseLogo}
+              alt="Eclipse"
+              width={48}
+              height={48}
+              className="h-12 w-12 shrink-0 -mr-2 object-contain"
+            />
             <span className="text-xl font-semibold text-primary tracking-wide">ECLIPSE</span>
           </div>
 
